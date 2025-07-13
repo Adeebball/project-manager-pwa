@@ -581,6 +581,17 @@ modalCancel.addEventListener("click", (e) => {
   e.preventDefault();
   closeModal();
 });
+const modalClose = document.getElementById("modalClose");
+if (modalClose) {
+  modalClose.addEventListener("click", closeModal);
+}
+
+// اختياري: دعم زر Escape للخروج
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !modalOverlay.classList.contains("hidden")) {
+    closeModal();
+  }
+});
 
 
 // --- إغلاق المودال عند الضغط على خلفية المودال ---
