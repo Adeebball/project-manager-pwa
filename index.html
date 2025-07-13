@@ -2,53 +2,46 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>تطبيق إدارة المشاريع والمالية</title>
-<link rel="stylesheet" href="styles.css" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة المشاريع - Project Manager</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
   <div class="container">
     <header>
-      <h1>إدارة المشاريع</h1>
+      <h1>مدير المشاريع</h1>
     </header>
 
-    <section class="projects-section">
-      <button id="btnNewProject" class="btn">+ مشروع جديد</button>
-      <ul id="projectsList" class="projects-list" role="list" aria-label="قائمة المشاريع"></ul>
-    </section>
+    <main>
+      <section class="projects-section">
+        <button id="btnNewProject" class="btn">+ مشروع جديد</button>
+        <input type="search" id="projectSearch" placeholder="🔍 ابحث عن مشروع..." />
+        <ul id="projectsList" class="projects-list"></ul>
+      </section>
 
-    <section class="project-details hidden" aria-live="polite">
-      <h2 id="currentProjectName">-- اختر مشروع لعرض التفاصيل --</h2>
-
-      <nav class="tabs" role="tablist" aria-label="تبويبات إدارة المشروع">
-        <button class="tab active" data-tab="summary" role="tab" aria-selected="true" aria-controls="tab-summary" id="tab-btn-summary">ملخص</button>
-        <button class="tab" data-tab="tasks" role="tab" aria-selected="false" aria-controls="tab-tasks" id="tab-btn-tasks">المهام</button>
-        <button class="tab" data-tab="employees" role="tab" aria-selected="false" aria-controls="tab-employees" id="tab-btn-employees">الموظفين</button>
-        <button class="tab" data-tab="attendance" role="tab" aria-selected="false" aria-controls="tab-attendance" id="tab-btn-attendance">الدوام</button>
-        <button class="tab" data-tab="finance" role="tab" aria-selected="false" aria-controls="tab-finance" id="tab-btn-finance">المحاسبة</button>
-        <button class="tab" data-tab="reports" role="tab" aria-selected="false" aria-controls="tab-reports" id="tab-btn-reports">التقارير</button>
-      </nav>
-
-      <div class="actions" role="region" aria-label="إجراءات المشروع">
-        <button id="btnAddTask" class="btn" disabled aria-disabled="true">+ مهمة جديدة</button>
-        <button id="btnAddMember" class="btn" disabled aria-disabled="true">+ موظف جديد</button>
-        <button id="btnAddAttendance" class="btn" disabled aria-disabled="true">+ تسجيل دوام</button>
-        <button id="btnAddTransaction" class="btn" disabled aria-disabled="true">+ معاملة مالية</button>
-      </div>
-
-      <div id="tabContent" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-btn-summary" aria-live="polite">
-        <p>اختر مشروعًا من القائمة لبدء الإدارة.</p>
-      </div>
-    </section>
+      <section class="details-section">
+        <div class="tabs">
+          <button class="tab active" data-tab="summary">ملخص</button>
+          <button class="tab" data-tab="tasks">المهام</button>
+          <button class="tab" data-tab="team">الفريق</button>
+          <button class="tab" data-tab="attendance">الدوام</button>
+          <button class="tab" data-tab="finance">المحاسبة</button>
+        </div>
+        <div id="tabContent" class="tab-content show">
+          <p>اختر مشروعًا من القائمة لبدء الإدارة.</p>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+  <!-- المودال -->
+  <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal">
-      <h3 id="modalTitle"></h3>
-      <form id="modalForm" novalidate></form>
-      <button id="modalCancel" class="btn cancel-btn" type="button">إلغاء</button>
+      <h2 id="modalTitle"></h2>
+      <form id="modalForm"></form>
+      <div class="modal-buttons">
+        <button type="button" id="modalCancel" class="btn secondary">إلغاء</button>
+      </div>
     </div>
   </div>
 
