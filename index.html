@@ -1,71 +1,64 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>مدير المشاريع المتكامل</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مدير المشاريع المتكامل</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-<div class="app-container">
+  <div class="app-container">
+    <nav class="sidebar">
+      <h2>📋 المدير</h2>
+      <ul class="nav-list">
+        <li><button id="tabProjects" class="tab-btn active">المشاريع</button></li>
+        <li><button id="tabClients" class="tab-btn">العملاء</button></li>
+        <li><button id="tabEmployees" class="tab-btn">الموظفين</button></li>
+        <li><button id="tabBudget" class="tab-btn">الميزانية والحسابات</button></li>
+      </ul>
+    </nav>
+    <main class="content-area">
+      <section id="projectsTab" class="tab-content active">
+        <header><h1>المشاريع</h1><button id="btnAddProject" class="liquid-glass-btn">إنشاء مشروع</button></header>
+        <ul id="projectsList" class="list"></ul>
+      </section>
+      <section id="clientsTab" class="tab-content">
+        <header><h1>العملاء</h1><button id="btnAddClient" class="liquid-glass-btn">إضافة عميل</button></header>
+        <ul id="clientsList" class="list"></ul>
+      </section>
+      <section id="employeesTab" class="tab-content">
+        <header><h1>الموظفين</h1><button id="btnAddEmployee" class="liquid-glass-btn">إضافة موظف</button></header>
+        <ul id="employeesList" class="list"></ul>
+      </section>
+      <section id="budgetTab" class="tab-content">
+        <header>
+          <h1>الميزانية والحسابات</h1>
+          <button id="btnAddBudget" class="liquid-glass-btn">تعيين ميزانية</button>
+          <button id="btnAddAccount" class="liquid-glass-btn">إضافة حركة مالية</button>
+        </header>
+        <div id="budgetSummary" class="budget-summary"></div>
+        <ul id="accountsList" class="list"></ul>
+      </section>
+    </main>
+  </div>
 
-  <nav class="sidebar">
-    <h2>📋 المدير</h2>
-    <ul class="nav-list" role="tablist" aria-label="التنقل بين الأقسام">
-      <li><button role="tab" aria-selected="true" aria-controls="projectsTab" id="tabProjects" class="tab-btn active">المشاريع</button></li>
-      <li><button role="tab" aria-selected="false" aria-controls="clientsTab" id="tabClients" class="tab-btn">العملاء</button></li>
-      <li><button role="tab" aria-selected="false" aria-controls="employeesTab" id="tabEmployees" class="tab-btn">الموظفين</button></li>
-      <li><button role="tab" aria-selected="false" aria-controls="budgetTab" id="tabBudget" class="tab-btn">الميزانية والحسابات</button></li>
-    </ul>
-  </nav>
-
-  <main class="content-area">
-    <!-- المشاريع -->
-    <section id="projectsTab" role="tabpanel" tabindex="0" aria-labelledby="tabProjects" class="tab-content active">
-      <header><h1>المشاريع</h1><button id="btnAddProject" class="liquid-glass-btn">إنشاء مشروع جديد</button></header>
-      <ul id="projectsList" class="list"></ul>
-    </section>
-
-    <!-- العملاء -->
-    <section id="clientsTab" role="tabpanel" tabindex="0" aria-labelledby="tabClients" class="tab-content">
-      <header><h1>العملاء</h1><button id="btnAddClient" class="liquid-glass-btn">إضافة عميل جديد</button></header>
-      <ul id="clientsList" class="list"></ul>
-    </section>
-
-    <!-- الموظفين -->
-    <section id="employeesTab" role="tabpanel" tabindex="0" aria-labelledby="tabEmployees" class="tab-content">
-      <header><h1>الموظفين</h1><button id="btnAddEmployee" class="liquid-glass-btn">إضافة موظف جديد</button></header>
-      <ul id="employeesList" class="list"></ul>
-    </section>
-
-    <!-- الميزانية والحسابات -->
-    <section id="budgetTab" role="tabpanel" tabindex="0" aria-labelledby="tabBudget" class="tab-content">
-      <header><h1>الميزانية والحسابات</h1>
-        <button id="btnAddBudget" class="liquid-glass-btn">تعيين ميزانية جديدة</button>
-        <button id="btnAddAccount" class="liquid-glass-btn">إضافة حركة مالية</button>
-      </header>
-      <div id="budgetSummary" class="budget-summary"></div>
-      <ul id="accountsList" class="list"></ul>
-    </section>
-
-  </main>
-
-</div>
-
-<!-- نماذج الحوارات -->
-<div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
-  <div class="modal">
-    <h2 id="modalTitle"></h2>
-    <form id="modalForm">
-      <!-- inputs dynamically injected -->
-    </form>
-    <div class="modal-buttons">
-      <button id="modalCancel" class="liquid-glass-btn">إلغاء</button>
-      <button id="modalSubmit" class="liquid-glass-btn">حفظ</button>
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2 id="modalTitle"></h2>
+      <form id="modalForm"></form>
+      <div class="modal-buttons">
+        <button id="modalCancel" class="liquid‑glass‑btn">إلغاء</button>
+        <button id="modalSubmit" class="liquid‑glass‑btn">حفظ</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="app.js" defer></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
 </body>
 </html>
