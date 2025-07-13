@@ -1,17 +1,15 @@
-
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مدير المشاريع</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>مدير المشاريع - PWA</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div id="app">
     <aside>
-      <h2>المشاريع</h2>
+      <h2>مشاريعي</h2>
       <input
         type="text"
         id="projectSearch"
@@ -24,34 +22,34 @@
 
     <main>
       <nav>
-        <button class="tab active" data-tab="summary">ملخص</button>
-        <button class="tab" data-tab="tasks">المهام</button>
-        <button class="tab" data-tab="team">الفريق</button>
-        <button class="tab" data-tab="finance">المحاسبة</button>
-        <button class="tab" data-tab="todo">To-Do</button>
-        <button class="tab" data-tab="notes">ملاحظات</button>
+        <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
+        <button class="tab glass-btn" data-tab="tasks" type="button">مهام</button>
+        <button class="tab glass-btn" data-tab="todo" type="button">To-Do</button>
+        <button class="tab glass-btn" data-tab="team" type="button">الفريق</button>
+        <button class="tab glass-btn" data-tab="notes" type="button">ملاحظات</button>
+        <button class="tab glass-btn" data-tab="finance" type="button">المحاسبة</button>
       </nav>
 
-      <section id="tabContent" class="tab-content">
-        <!-- المحتوى يتغير حسب التبويب -->
-      </section>
+      <section id="tabContent" class="tab-content glass-card"></section>
     </main>
   </div>
 
-  <!-- مودال موحد -->
-  <div id="modalOverlay" class="hidden">
+  <div
+    id="modalOverlay"
+    class="hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+  >
     <div class="modal glass-card">
       <h3 id="modalTitle"></h3>
-      <form id="modalForm"></form>
-      <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
+      <form id="modalForm" novalidate></form>
+      <button id="modalCancel" class="btn cancel-btn glass-btn" type="button">
+        إلغاء
+      </button>
     </div>
   </div>
 
   <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
