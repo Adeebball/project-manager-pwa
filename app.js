@@ -1,7 +1,5 @@
-// بيانات المشاريع مخزنة أوفلاين
 let projects = JSON.parse(localStorage.getItem("projects") || "[]");
 let currentProjectId = null;
-let selectedCurrency = localStorage.getItem("selectedCurrency") || "USD";
 
 const projectsListEl = document.getElementById("projectsList");
 const btnNewProject = document.getElementById("btnNewProject");
@@ -12,6 +10,8 @@ const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle = document.getElementById("modalTitle");
 const modalForm = document.getElementById("modalForm");
 const modalCancel = document.getElementById("modalCancel");
+
+const defaultCurrency = "USD";
 
 renderProjectsList();
 selectProject(projects.length ? projects[0].id : null);
@@ -57,11 +57,11 @@ function setupTabs() {
 
 function renderTabContent() {
   const project = projects.find((p) => p.id === currentProjectId);
-  const activeTab = document.querySelector(".tab.active").dataset.tab;
   if (!project) {
     tabContent.innerHTML = "<p>لا يوجد مشروع محدد.</p>";
     return;
   }
+  const activeTab = document.querySelector(".tab.active").dataset.tab;
   switch (activeTab) {
     case "summary":
       renderSummary(project);
@@ -93,9 +93,7 @@ function renderTasks(project) {
     <button id="btnAddTask" class="btn glass-btn">+ إضافة مهمة جديدة</button>
     <ul id="tasksList"></ul>
   `;
-  document.getElementById("btnAddTask").addEventListener("click", () =>
-    openModal("task")
-  );
+  document.getElementById("btnAddTask").addEventListener("click", () => openModal("task"));
   renderTasksList(project);
 }
 
@@ -116,9 +114,7 @@ function renderTeam(project) {
     <button id="btnAddMember" class="btn glass-btn">+ إضافة عضو جديد</button>
     <ul id="teamList"></ul>
   `;
-  document.getElementById("btnAddMember").addEventListener("click", () =>
-    openModal("member")
-  );
+  document.getElementById("btnAddMember").addEventListener("click", () => openModal("member"));
   renderTeamList(project);
 }
 
@@ -137,34 +133,10 @@ function renderFinance(project) {
   tabContent.innerHTML = `
     <h3>المحاسبة</h3>
     <button id="btnAddTransaction" class="btn glass-btn">+ إضافة معاملة جديدة</button>
-    <div style="margin-bottom:10px;">
-      <label for="currencySelect">اختيار العملة:</label>
-      <select id="currencySelect" style="margin-left:10px; padding:5px; border-radius:5px;">
-        ${Object.keys(project.currencyRates || defaultCurrencyRates)
-          .map(
-            (c) =>
-              `<option value="${c}" ${
-                c === (project.selectedCurrency || "USD") ? "selected" : ""
-              }>${c}</option>`
-          )
-          .join("")}
-      </select>
-    </div>
     <ul id="transactionsList"></ul>
-    <p>الرصيد الحالي: <span id="currentBalance">0</span> ${project.selectedCurrency || "USD"}</p>
+    <p>الرصيد الحالي: <span id="currentBalance">0</span> ${defaultCurrency}</p>
   `;
-
-  document
-    .getElementById("btnAddTransaction")
-    .addEventListener("click", () => openModal("transaction"));
-
-  document.getElementById("currencySelect").addEventListener("change", (e) => {
-    const project = projects.find((p) => p.id === currentProjectId);
-    project.selectedCurrency = e.target.value;
-    saveProjects();
-    renderFinance(project);
-  });
-
+  document.getElementById("btnAddTransaction").addEventListener("click", () => openModal("transaction"));
   renderTransactionsList(project);
 }
 
@@ -174,28 +146,13 @@ function renderTransactionsList(project) {
   if (!project.transactions) project.transactions = [];
   let balance = 0;
   project.transactions.forEach((t) => {
-    let rate = parseFloat(t.exchangeRate);
-    if (!rate || rate <= 0) rate = 1; // افتراضياً 1 لو ما تم تعيين سعر
-    const amountInSelected = t.amount * rate;
-    balance += t.type === "إيراد" ? amountInSelected : -amountInSelected;
     const li = document.createElement("li");
-    li.textContent = `[${t.type}] ${t.description || ""} : ${amountInSelected.toFixed(
-      2
-    )} ${project.selectedCurrency || "USD"}`;
+    li.textContent = `[${t.type}] ${t.description || ""} : ${t.amount.toFixed(2)} ${defaultCurrency}`;
     list.appendChild(li);
+    balance += t.type === "إيراد" ? t.amount : -t.amount;
   });
   document.getElementById("currentBalance").textContent = balance.toFixed(2);
 }
-
-const defaultCurrencyRates = {
-  USD: 1,
-  EUR: 0.95,
-  GBP: 0.82,
-  JPY: 145.7,
-  SAR: 3.75,
-  AED: 3.67,
-  EGP: 30.9,
-};
 
 function openModal(type) {
   modalOverlay.classList.remove("hidden");
@@ -236,8 +193,6 @@ function openModal(type) {
           tasks: [],
           team: [],
           transactions: [],
-          selectedCurrency: "USD",
-          currencyRates: { ...defaultCurrencyRates },
         });
         saveProjects();
         renderProjectsList();
@@ -318,23 +273,6 @@ function openModal(type) {
         <label for="transactionAmount">المبلغ *</label>
         <input id="transactionAmount" name="transactionAmount" type="number" step="0.01" min="0" required />
 
-        <label for="transactionCurrency">العملة</label>
-        <select id="transactionCurrency" name="transactionCurrency">
-          ${Object.keys(defaultCurrencyRates)
-            .map(
-              (c) =>
-                `<option value="${c}" ${
-                  c === (projects.find((p) => p.id === currentProjectId)?.selectedCurrency || "USD")
-                    ? "selected"
-                    : ""
-                }>${c}</option>`
-            )
-            .join("")}
-        </select>
-
-        <label for="exchangeRate">سعر التحويل إلى العملة المختارة *</label>
-        <input id="exchangeRate" name="exchangeRate" type="number" step="0.0001" min="0" value="1" required />
-
         <button type="submit" class="btn glass-btn">إضافة</button>
       `;
       modalForm.onsubmit = (e) => {
@@ -342,14 +280,12 @@ function openModal(type) {
         const type = modalForm.transactionType.value;
         const desc = modalForm.transactionDesc.value.trim();
         const amount = parseFloat(modalForm.transactionAmount.value);
-        const currency = modalForm.transactionCurrency.value;
-        const exchangeRate = parseFloat(modalForm.exchangeRate.value);
 
-        if (!type || isNaN(amount) || amount <= 0 || !exchangeRate || exchangeRate <= 0) {
+        if (!type || isNaN(amount) || amount <= 0) {
           return alert("يرجى تعبئة الحقول المطلوبة بشكل صحيح");
         }
         const project = projects.find((p) => p.id === currentProjectId);
-        project.transactions.push({ type, description: desc, amount, currency, exchangeRate });
+        project.transactions.push({ type, description: desc, amount });
         saveProjects();
         renderFinance(project);
         closeModal();
