@@ -3,7 +3,7 @@ let projects = JSON.parse(localStorage.getItem("projects")) || [];
 let selectedProjectIndex = null;
 let currentTab = "summary";
 
-// العناصر
+// عناصر DOM
 const projectsList = document.getElementById("projectsList");
 const tabContent = document.getElementById("tabContent");
 const tabs = document.querySelectorAll(".tab");
@@ -14,7 +14,7 @@ const modalForm = document.getElementById("modalForm");
 const modalCancel = document.getElementById("modalCancel");
 const projectSearch = document.getElementById("projectSearch");
 
-// تحديث عرض المشاريع
+// عرض المشاريع
 function renderProjects() {
   const filter = projectSearch.value.trim().toLowerCase();
   projectsList.innerHTML = "";
@@ -46,19 +46,19 @@ function selectProject(index) {
   renderTabContent();
 }
 
-// عرض معلومات أساسية
+// عرض معلومات المشروع والتابات
 function showProjectDetails() {
-  document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+  tabs.forEach((tab) => tab.classList.remove("active"));
   document.querySelector(`.tab[data-tab="${currentTab}"]`)?.classList.add("active");
   tabContent.classList.remove("show");
 }
 
-// تبويبات
+// التحكم بالتبويبات
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     currentTab = tab.dataset.tab;
     showProjectDetails();
-    setTimeout(renderTabContent, 50); // تحريك سلس
+    setTimeout(renderTabContent, 50);
   });
 });
 
@@ -71,114 +71,223 @@ function renderTabContent() {
   }
 
   const project = projects[selectedProjectIndex];
-  let html = "";
-
   switch (currentTab) {
     case "summary":
-      html = `
-        <h3>ملخص المشروع</h3>
-        <p><strong>الوصف:</strong> ${project.description || "—"}</p>
-        <p><strong>البداية:</strong> ${project.startDate || "—"}</p>
-        <p><strong>النهاية:</strong> ${project.endDate || "—"}</p>
-        <p><strong>الحالة:</strong> ${project.status || "نشط"}</p>
-      `;
+      renderSummary(project);
       break;
-
     case "tasks":
-      html = `<h3>المهام</h3><p>لاحقاً سيتم إضافة المهام هنا.</p>`;
+      renderTasks(project);
       break;
-
     case "team":
-      html = `<h3>الفريق</h3><p>لاحقاً سيتم عرض الموظفين.</p>`;
+      renderTeam(project);
       break;
-
-    case "attendance":
-      html = `<h3>الدوام</h3><p>لاحقاً سيتم إضافة إدارة الدوام.</p>`;
-      break;
-
     case "finance":
-      const f = project.finance;
-      const s = project.currencySymbol || "$";
-
-      const calcTotal = (arr) => arr.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-      const totalSales = calcTotal(f.sales);
-      const totalPurchases = calcTotal(f.purchases);
-      const totalSalaries = calcTotal(f.salaries);
-      const totalExpenses = calcTotal(f.expenses);
-
-      const currentBalance =
-        (f.previousBalance || 0) + totalSales - totalPurchases - totalSalaries - totalExpenses;
-
-      html = `
-        <h3>البيانات المالية (${project.currency || "العملة غير محددة"})</h3>
-        <p><strong>الرصيد السابق:</strong> ${s}${f.previousBalance}</p>
-        <p><strong>المبيعات:</strong> ${s}${totalSales}</p>
-        <p><strong>المشتريات:</strong> ${s}${totalPurchases}</p>
-        <p><strong>الرواتب:</strong> ${s}${totalSalaries}</p>
-        <p><strong>النفقات:</strong> ${s}${totalExpenses}</p>
-        <hr>
-        <h4>💰 الرصيد الحالي: ${s}${currentBalance}</h4>
-        <hr>
-        <div style="margin-top: 20px">
-          <button class="btn" onclick="addTransaction('sales')">+ إضافة مبيع</button>
-          <button class="btn" onclick="addTransaction('purchases')">+ إضافة شراء</button>
-          <button class="btn" onclick="addTransaction('expenses')">+ إضافة نفقة</button>
-          <button class="btn" onclick="addTransaction('salaries')">+ دفع راتب</button>
-        </div>
-      `;
+      renderFinance(project);
       break;
+    default:
+      tabContent.innerHTML = "<p>المحتوى غير متوفر.</p>";
+      tabContent.classList.add("show");
   }
+}
 
+// ملخص المشروع
+function renderSummary(project) {
+  tabContent.innerHTML = `
+    <h3>ملخص المشروع</h3>
+    <p><strong>الوصف:</strong> ${project.description || "—"}</p>
+    <p><strong>البداية:</strong> ${project.startDate || "—"}</p>
+    <p><strong>النهاية:</strong> ${project.endDate || "—"}</p>
+    <p><strong>الحالة:</strong> ${project.status || "نشط"}</p>
+  `;
+  tabContent.classList.add("show");
+}
+
+// إدارة المهام
+function renderTasks(project) {
+  let html = `
+    <button class="btn" onclick="openAddTaskModal()">+ إضافة مهمة جديدة</button>
+    <ul>
+  `;
+
+  project.tasks.forEach((task, idx) => {
+    html += `
+      <li>
+        <strong>${task.name}</strong> - الحالة: ${task.status || "معلقة"}
+        <button onclick="editTask(${idx})">تعديل</button>
+        <button onclick="deleteTask(${idx})">حذف</button>
+      </li>
+    `;
+  });
+
+  html += "</ul>";
   tabContent.innerHTML = html;
   tabContent.classList.add("show");
 }
 
-// زر إضافة مشروع جديد
-btnNewProject.addEventListener("click", () => {
-  openModal("إضافة مشروع جديد", [
-    { label: "اسم المشروع", name: "name", type: "text", required: true },
-    { label: "الوصف", name: "description", type: "text" },
-    { label: "تاريخ البداية", name: "startDate", type: "date" },
-    { label: "تاريخ النهاية", name: "endDate", type: "date" },
+function openAddTaskModal() {
+  openModal("إضافة مهمة جديدة", [
+    { label: "اسم المهمة", name: "name", type: "text", required: true },
     {
-      label: "حالة المشروع",
+      label: "الحالة",
       name: "status",
       type: "select",
-      options: ["نشط", "مؤجل", "مكتمل"],
+      options: ["معلقة", "قيد التنفيذ", "مكتملة"],
       required: true,
-    },
-    { label: "العملة الرئيسية", name: "currency", type: "text", required: true },
-    { label: "رمز العملة", name: "currencySymbol", type: "text", required: true },
-    { label: "الرصيد السابق", name: "previousBalance", type: "number" },
+    }
   ], (formData) => {
-    const newProject = {
+    projects[selectedProjectIndex].tasks.push({
       name: formData.name,
-      description: formData.description,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
       status: formData.status,
-      currency: formData.currency,
-      currencySymbol: formData.currencySymbol,
-      tasks: [],
-      employees: [],
-      attendance: [],
-      finance: {
-        previousBalance: parseFloat(formData.previousBalance || 0),
-        salaries: [],
-        purchases: [],
-        sales: [],
-        expenses: [],
-      },
-    };
-    projects.push(newProject);
+    });
     saveProjects();
-    renderProjects();
-    selectProject(projects.length - 1);
+    renderTabContent();
     closeModal();
   });
-});
+}
 
-// مودال
+function editTask(idx) {
+  const task = projects[selectedProjectIndex].tasks[idx];
+  openModal("تعديل مهمة", [
+    { label: "اسم المهمة", name: "name", type: "text", required: true, value: task.name },
+    {
+      label: "الحالة",
+      name: "status",
+      type: "select",
+      options: ["معلقة", "قيد التنفيذ", "مكتملة"],
+      required: true,
+      value: task.status,
+    }
+  ], (formData) => {
+    projects[selectedProjectIndex].tasks[idx] = {
+      name: formData.name,
+      status: formData.status,
+    };
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+}
+
+function deleteTask(idx) {
+  if (confirm("هل أنت متأكد من حذف المهمة؟")) {
+    projects[selectedProjectIndex].tasks.splice(idx, 1);
+    saveProjects();
+    renderTabContent();
+  }
+}
+
+// إدارة الفريق
+function renderTeam(project) {
+  let html = `
+    <button class="btn" onclick="openAddMemberModal()">+ إضافة عضو جديد</button>
+    <ul>
+  `;
+
+  project.employees.forEach((member, idx) => {
+    html += `
+      <li>
+        <strong>${member.name}</strong> - الدور: ${member.role || "عضو فريق"}
+        <button onclick="deleteMember(${idx})">حذف</button>
+      </li>
+    `;
+  });
+
+  html += "</ul>";
+  tabContent.innerHTML = html;
+  tabContent.classList.add("show");
+}
+
+function openAddMemberModal() {
+  openModal("إضافة عضو جديد", [
+    { label: "اسم العضو", name: "name", type: "text", required: true },
+    {
+      label: "الدور",
+      name: "role",
+      type: "select",
+      options: ["مدير", "عضو فريق", "مشاهد"],
+      required: true,
+    }
+  ], (formData) => {
+    projects[selectedProjectIndex].employees.push({
+      name: formData.name,
+      role: formData.role,
+    });
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+}
+
+function deleteMember(idx) {
+  if (confirm("هل أنت متأكد من حذف العضو؟")) {
+    projects[selectedProjectIndex].employees.splice(idx, 1);
+    saveProjects();
+    renderTabContent();
+  }
+}
+
+// المحاسبة المالية
+function renderFinance(project) {
+  const f = project.finance;
+  const s = project.currencySymbol || "$";
+
+  const calcTotal = (arr) => arr.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalSales = calcTotal(f.sales);
+  const totalPurchases = calcTotal(f.purchases);
+  const totalSalaries = calcTotal(f.salaries);
+  const totalExpenses = calcTotal(f.expenses);
+
+  const currentBalance =
+    (f.previousBalance || 0) + totalSales - totalPurchases - totalSalaries - totalExpenses;
+
+  let html = `
+    <h3>البيانات المالية (${project.currency || "العملة غير محددة"})</h3>
+    <p><strong>الرصيد السابق:</strong> ${s}${f.previousBalance}</p>
+    <p><strong>المبيعات:</strong> ${s}${totalSales}</p>
+    <p><strong>المشتريات:</strong> ${s}${totalPurchases}</p>
+    <p><strong>الرواتب:</strong> ${s}${totalSalaries}</p>
+    <p><strong>النفقات:</strong> ${s}${totalExpenses}</p>
+    <hr>
+    <h4>💰 الرصيد الحالي: ${s}${currentBalance}</h4>
+    <hr>
+    <div style="margin-top: 20px">
+      <button class="btn" onclick="addTransaction('sales')">+ إضافة مبيع</button>
+      <button class="btn" onclick="addTransaction('purchases')">+ إضافة شراء</button>
+      <button class="btn" onclick="addTransaction('expenses')">+ إضافة نفقة</button>
+      <button class="btn" onclick="addTransaction('salaries')">+ دفع راتب</button>
+    </div>
+  `;
+  tabContent.innerHTML = html;
+  tabContent.classList.add("show");
+}
+
+// إضافة حركة مالية
+function addTransaction(type) {
+  const labels = {
+    sales: "مبيع",
+    purchases: "شراء",
+    expenses: "نفقة",
+    salaries: "راتب",
+  };
+
+  openModal(`إضافة ${labels[type]}`, [
+    { label: "الوصف", name: "description", type: "text", required: true },
+    { label: "المبلغ", name: "amount", type: "number", required: true },
+    { label: "التاريخ", name: "date", type: "date", required: true },
+  ], (formData) => {
+    const entry = {
+      description: formData.description,
+      amount: parseFloat(formData.amount),
+      date: formData.date,
+    };
+    projects[selectedProjectIndex].finance[type].push(entry);
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+}
+
+// مودال عام
 function openModal(title, fields, onSubmit) {
   modalTitle.textContent = title;
   modalForm.innerHTML = "";
@@ -196,11 +305,13 @@ function openModal(title, fields, onSubmit) {
         const option = document.createElement("option");
         option.value = opt;
         option.textContent = opt;
+        if(field.value && field.value === opt) option.selected = true;
         input.appendChild(option);
       });
     } else {
       input = document.createElement("input");
       input.type = field.type;
+      if(field.value) input.value = field.value;
     }
 
     input.name = field.name;
@@ -235,43 +346,18 @@ window.addEventListener("click", (e) => {
   if (e.target === modalOverlay) closeModal();
 });
 
-// حفظ البيانات
+// حفظ المشاريع في LocalStorage
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
-// إضافة حركة مالية
-function addTransaction(type) {
-  const labels = {
-    sales: "مبيع",
-    purchases: "شراء",
-    expenses: "نفقة",
-    salaries: "راتب",
-  };
-
-  openModal(`إضافة ${labels[type]}`, [
-    { label: "الوصف", name: "description", type: "text", required: true },
-    { label: "المبلغ", name: "amount", type: "number", required: true },
-    { label: "التاريخ", name: "date", type: "date", required: true },
-  ], (formData) => {
-    const entry = {
-      description: formData.description,
-      amount: parseFloat(formData.amount),
-      date: formData.date,
-    };
-    projects[selectedProjectIndex].finance[type].push(entry);
-    saveProjects();
-    renderTabContent();
-    closeModal();
-  });
-}
-
-// البحث
+// البحث ضمن المشاريع
 projectSearch.addEventListener("input", renderProjects);
 
-// بدء
+// بدء التطبيق
 function init() {
   renderProjects();
   showProjectDetails();
+  renderTabContent();
 }
 init();
