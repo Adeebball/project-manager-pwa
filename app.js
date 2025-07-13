@@ -1,294 +1,202 @@
+// قاعدة بيانات IndexedDB
 let db;
 let currentProjectId = null;
 let currentTab = 'summary';
 
-// ======= فتح قاعدة البيانات وتحديثها =======
+// فتح قاعدة البيانات
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ProjectManagerDB', 2);
+    const request = indexedDB.open('ProjectManagerDB', 1);
+
+    request.onerror = () => reject('فشل فتح قاعدة البيانات');
+    request.onsuccess = () => {
+      db = request.result;
+      resolve();
+    };
+
     request.onupgradeneeded = (e) => {
       db = e.target.result;
 
       if (!db.objectStoreNames.contains('projects')) {
-        db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+        const projectStore = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+        projectStore.createIndex('name', 'name', { unique: false });
       }
+
       if (!db.objectStoreNames.contains('tasks')) {
-        const store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-        store.createIndex('projectId', 'projectId', { unique: false });
+        const taskStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+        taskStore.createIndex('projectId', 'projectId', { unique: false });
       }
+
       if (!db.objectStoreNames.contains('members')) {
-        const store = db.createObjectStore('members', { keyPath: 'id', autoIncrement: true });
-        store.createIndex('projectId', 'projectId', { unique: false });
+        const memberStore = db.createObjectStore('members', { keyPath: 'id', autoIncrement: true });
+        memberStore.createIndex('projectId', 'projectId', { unique: false });
       }
+
       if (!db.objectStoreNames.contains('attendance')) {
-        const store = db.createObjectStore('attendance', { keyPath: 'id', autoIncrement: true });
-        store.createIndex('employeeId', 'employeeId', { unique: false });
+        const attendanceStore = db.createObjectStore('attendance', { keyPath: 'id', autoIncrement: true });
+        attendanceStore.createIndex('employeeId', 'employeeId', { unique: false });
+        attendanceStore.createIndex('projectId', 'projectId', { unique: false });
       }
+
       if (!db.objectStoreNames.contains('transactions')) {
-        const store = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
-        store.createIndex('projectId', 'projectId', { unique: false });
-        store.createIndex('type', 'type', { unique: false });
+        const transactionStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+        transactionStore.createIndex('projectId', 'projectId', { unique: false });
+        transactionStore.createIndex('type', 'type', { unique: false });
       }
     };
-
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      resolve();
-    };
-
-    request.onerror = () => reject('فشل بفتح قاعدة البيانات');
   });
 }
 
-// ======= CRUD مشاريع =======
+// ==== عمليات CRUD ====
+
+// إضافة مشروع
 function addProject(project) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('projects', 'readwrite');
     const store = tx.objectStore('projects');
     const req = store.add(project);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بإضافة المشروع');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل إضافة المشروع');
   });
 }
 
+// جلب جميع المشاريع
 function getAllProjects() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('projects', 'readonly');
     const store = tx.objectStore('projects');
     const req = store.getAll();
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب المشاريع');
   });
 }
 
+// جلب مشروع بالمعرف
 function getProjectById(id) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('projects', 'readonly');
     const store = tx.objectStore('projects');
     const req = store.get(id);
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب المشروع');
   });
 }
 
-function updateProject(project) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('projects', 'readwrite');
-    const store = tx.objectStore('projects');
-    const req = store.put(project);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بتحديث المشروع');
-  });
-}
-
-function deleteProject(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('projects', 'readwrite');
-    const store = tx.objectStore('projects');
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بحذف المشروع');
-  });
-}
-
-// ======= CRUD مهام =======
+// إضافة مهمة
 function addTask(task) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('tasks', 'readwrite');
     const store = tx.objectStore('tasks');
     const req = store.add(task);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بإضافة المهمة');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل إضافة المهمة');
   });
 }
 
+// جلب المهام حسب المشروع
 function getTasksByProject(projectId) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('tasks', 'readonly');
     const store = tx.objectStore('tasks');
     const index = store.index('projectId');
     const req = index.getAll(IDBKeyRange.only(projectId));
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب المهام');
   });
 }
 
-function updateTask(task) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('tasks', 'readwrite');
-    const store = tx.objectStore('tasks');
-    const req = store.put(task);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بتحديث المهمة');
-  });
-}
-
-function deleteTask(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('tasks', 'readwrite');
-    const store = tx.objectStore('tasks');
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بحذف المهمة');
-  });
-}
-
-// ======= CRUD موظفين =======
+// إضافة عضو (موظف)
 function addMember(member) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('members', 'readwrite');
     const store = tx.objectStore('members');
     const req = store.add(member);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بإضافة الموظف');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل إضافة الموظف');
   });
 }
 
+// جلب الموظفين حسب المشروع
 function getMembersByProject(projectId) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('members', 'readonly');
     const store = tx.objectStore('members');
     const index = store.index('projectId');
     const req = index.getAll(IDBKeyRange.only(projectId));
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب الموظفين');
   });
 }
 
-function getMemberById(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('members', 'readonly');
-    const store = tx.objectStore('members');
-    const req = store.get(id);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب الموظف');
-  });
-}
-
-function updateMember(member) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('members', 'readwrite');
-    const store = tx.objectStore('members');
-    const req = store.put(member);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بتحديث الموظف');
-  });
-}
-
-function deleteMember(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('members', 'readwrite');
-    const store = tx.objectStore('members');
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بحذف الموظف');
-  });
-}
-
-// ======= CRUD دوام الموظفين =======
+// إضافة دوام
 function addAttendance(record) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('attendance', 'readwrite');
     const store = tx.objectStore('attendance');
     const req = store.add(record);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بإضافة سجل الدوام');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل تسجيل الدوام');
   });
 }
 
+// جلب سجلات الدوام حسب المشروع
+function getAttendanceByProject(projectId) {
+  return new Promise((resolve) => {
+    const tx = db.transaction('attendance', 'readonly');
+    const store = tx.objectStore('attendance');
+    const index = store.index('projectId');
+    const req = index.getAll(IDBKeyRange.only(projectId));
+    req.onsuccess = () => resolve(req.result);
+  });
+}
+
+// جلب سجلات دوام موظف معين
 function getAttendanceByEmployee(employeeId) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('attendance', 'readonly');
     const store = tx.objectStore('attendance');
     const index = store.index('employeeId');
     const req = index.getAll(IDBKeyRange.only(employeeId));
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب سجلات الدوام');
   });
 }
 
-function getAttendanceByProject(projectId) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const members = await getMembersByProject(projectId);
-      let allRecords = [];
-      for (const m of members) {
-        const records = await getAttendanceByEmployee(m.id);
-        allRecords = allRecords.concat(records.map(r => ({...r, employeeName: m.name})));
-      }
-      resolve(allRecords);
-    } catch {
-      reject('فشل بجلب سجلات الدوام للمشروع');
-    }
-  });
-}
-
-function deleteAttendance(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('attendance', 'readwrite');
-    const store = tx.objectStore('attendance');
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بحذف سجل الدوام');
-  });
-}
-
-// ======= CRUD معاملات مالية =======
+// إضافة معاملة مالية
 function addTransaction(tr) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('transactions', 'readwrite');
     const store = tx.objectStore('transactions');
     const req = store.add(tr);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بإضافة المعاملة');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل إضافة المعاملة');
   });
 }
 
+// جلب المعاملات حسب المشروع
 function getTransactionsByProject(projectId) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const tx = db.transaction('transactions', 'readonly');
     const store = tx.objectStore('transactions');
     const index = store.index('projectId');
     const req = index.getAll(IDBKeyRange.only(projectId));
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject('فشل بجلب المعاملات');
   });
 }
 
-function updateTransaction(tr) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readwrite');
-    const store = tx.objectStore('transactions');
-    const req = store.put(tr);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بتحديث المعاملة');
-  });
-}
-
-function deleteTransaction(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readwrite');
-    const store = tx.objectStore('transactions');
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل بحذف المعاملة');
-  });
-}
-
-// ======= حساب رواتب الموظفين =======
+// ===== حساب الراتب حسب دوام الموظف =====
 async function calculateSalary(employeeId, year, month) {
-  const records = await getAttendanceByEmployee(employeeId);
-  const employee = await getMemberById(employeeId);
-  const filteredRecords = records.filter(r => {
+  const attendanceRecords = await getAttendanceByEmployee(employeeId);
+  const members = await getMembersByProject(currentProjectId);
+  const employee = members.find(m => m.id === employeeId);
+  if (!employee) return { daysWorked: 0, salary: 0 };
+
+  const filteredRecords = attendanceRecords.filter(r => {
     const d = new Date(r.date);
     return d.getFullYear() === year && (d.getMonth() + 1) === month;
   });
+
   const daysWorked = filteredRecords.length;
   const salary = daysWorked * (employee.dailySalary || 0);
   return { daysWorked, salary };
 }
 
-// ======= DOM & أحداث =======
+// ===== DOM وعناصر الصفحة =====
 
 const projectsList = document.getElementById('projectsList');
 const btnNewProject = document.getElementById('btnNewProject');
@@ -298,6 +206,8 @@ const btnAddAttendance = document.getElementById('btnAddAttendance');
 const btnAddTransaction = document.getElementById('btnAddTransaction');
 
 const currentProjectName = document.getElementById('currentProjectName');
+const projectDetailsSection = document.querySelector('.project-details');
+
 const tabs = document.querySelectorAll('.tab');
 const tabContent = document.getElementById('tabContent');
 
@@ -343,8 +253,10 @@ async function loadProjects() {
   projectsList.innerHTML = '';
   if (projects.length === 0) {
     projectsList.innerHTML = '<li>لا توجد مشاريع</li>';
+    projectDetailsSection.classList.add('hidden');
     return;
   }
+  projectDetailsSection.classList.remove('hidden');
   projects.forEach(p => {
     const li = document.createElement('li');
     li.textContent = p.name;
@@ -371,268 +283,224 @@ async function openProject(id) {
 }
 
 function openModal(type) {
-  modalForm.dataset.type = type;
   modalForm.innerHTML = '';
-  modalTitle.textContent = {
-    project: 'إضافة مشروع جديد',
-    task: 'إضافة مهمة جديدة',
-    member: 'إضافة موظف جديد',
-    attendance: 'تسجيل دوام',
-    transaction: 'إضافة معاملة مالية',
-  }[type] || '';
-
-  let html = '';
-  if (type === 'project') {
-    html = `
-      <label>اسم المشروع<span style="color:#ff6b6b;">*</span></label>
-      <input type="text" name="name" required />
-      <button type="submit">حفظ</button>
-    `;
-  } else if (type === 'task') {
-    html = `
-      <label>عنوان المهمة<span style="color:#ff6b6b;">*</span></label>
-      <input type="text" name="title" required />
-      <button type="submit">حفظ</button>
-    `;
-  } else if (type === 'member') {
-    html = `
-      <label>اسم الموظف<span style="color:#ff6b6b;">*</span></label>
-      <input type="text" name="name" required />
-      <label>الوظيفة</label>
-      <input type="text" name="role" />
-      <label>راتب يومي (مثلاً 50)</label>
-      <input type="number" name="dailySalary" min="0" step="0.01" />
-      <button type="submit">حفظ</button>
-    `;
-  } else if (type === 'attendance') {
-    html = `
-      <label>الموظف<span style="color:#ff6b6b;">*</span></label>
-      <select name="employeeId" required></select>
-      <label>تاريخ</label>
-      <input type="date" name="date" required />
-      <label>توقيت الحضور</label>
-      <input type="time" name="checkIn" required />
-      <label>توقيت الانصراف</label>
-      <input type="time" name="checkOut" required />
-      <button type="submit">حفظ</button>
-    `;
-  } else if (type === 'transaction') {
-    html = `
-      <label>نوع المعاملة<span style="color:#ff6b6b;">*</span></label>
-      <select name="type" required>
-        <option value="">اختر النوع</option>
-        <option value="راتب">راتب</option>
-        <option value="مشتريات">مشتريات</option>
-        <option value="مبيعات">مبيعات</option>
-        <option value="نفقات">نفقات</option>
-      </select>
-      <label>المبلغ<span style="color:#ff6b6b;">*</span></label>
-      <input type="number" name="amount" min="0" step="0.01" required />
-      <label>الوصف</label>
-      <input type="text" name="description" />
-      <label>التاريخ</label>
-      <input type="date" name="date" required />
-      <label id="serviceTypeLabel" style="display:none;">نوع الخدمة المباعة</label>
-      <input type="text" name="serviceType" style="display:none;" />
-      <label id="salaryEmployeeLabel" style="display:none;">الموظف</label>
-      <select name="salaryEmployeeId" style="display:none;"></select>
-      <button type="submit">حفظ</button>
-    `;
-
-    // بعد إضافة الفورم، نعبئ خيارات الموظفين داخل select
-    setTimeout(async () => {
-      const empSelect = modalForm.querySelector('select[name="salaryEmployeeId"]');
-      const typeSelect = modalForm.querySelector('select[name="type"]');
-      const serviceLabel = document.getElementById('serviceTypeLabel');
-      const serviceInput = modalForm.querySelector('input[name="serviceType"]');
-      const salaryEmpLabel = document.getElementById('salaryEmployeeLabel');
-
-      // إظهار أو إخفاء الحقول حسب نوع المعاملة
-      typeSelect.addEventListener('change', async () => {
-        const val = typeSelect.value;
-        if (val === 'مبيعات') {
-          serviceLabel.style.display = 'block';
-          serviceInput.style.display = 'block';
-          salaryEmpLabel.style.display = 'none';
-          empSelect.style.display = 'none';
-        } else if (val === 'راتب') {
-          salaryEmpLabel.style.display = 'block';
-          empSelect.style.display = 'block';
-          serviceLabel.style.display = 'none';
-          serviceInput.style.display = 'none';
-
-          // تعبئة الموظفين
-          empSelect.innerHTML = '';
-          const employees = await getMembersByProject(currentProjectId);
-          employees.forEach(emp => {
-            const option = document.createElement('option');
-            option.value = emp.id;
-            option.textContent = emp.name;
-            empSelect.appendChild(option);
-          });
-        } else {
-          serviceLabel.style.display = 'none';
-          serviceInput.style.display = 'none';
-          salaryEmpLabel.style.display = 'none';
-          empSelect.style.display = 'none';
-        }
-      });
-    }, 100);
+  modalTitle.textContent = '';
+  switch(type) {
+    case 'project':
+      modalTitle.textContent = 'إضافة مشروع جديد';
+      modalForm.innerHTML = `
+        <label>اسم المشروع (مطلوب):</label>
+        <input name="name" required />
+        <label>الوصف:</label>
+        <input name="description" />
+        <label>تاريخ البداية:</label>
+        <input type="date" name="startDate" />
+        <label>تاريخ النهاية:</label>
+        <input type="date" name="endDate" />
+        <button type="submit">إضافة</button>
+      `;
+      break;
+    case 'task':
+      modalTitle.textContent = 'إضافة مهمة جديدة';
+      modalForm.innerHTML = `
+        <label>عنوان المهمة (مطلوب):</label>
+        <input name="title" required />
+        <label>الوصف:</label>
+        <input name="description" />
+        <label>الحالة:</label>
+        <select name="status">
+          <option value="معلقة">معلقة</option>
+          <option value="قيد التنفيذ">قيد التنفيذ</option>
+          <option value="مكتملة">مكتملة</option>
+        </select>
+        <button type="submit">إضافة</button>
+      `;
+      break;
+    case 'member':
+      modalTitle.textContent = 'إضافة موظف جديد';
+      modalForm.innerHTML = `
+        <label>اسم الموظف (مطلوب):</label>
+        <input name="name" required />
+        <label>الدور:</label>
+        <input name="role" />
+        <label>الراتب اليومي:</label>
+        <input name="dailySalary" type="number" min="0" step="0.01" />
+        <button type="submit">إضافة</button>
+      `;
+      break;
+    case 'attendance':
+      modalTitle.textContent = 'تسجيل دوام';
+      modalForm.innerHTML = `
+        <label>الموظف (ID):</label>
+        <input name="employeeId" type="number" required />
+        <label>التاريخ:</label>
+        <input type="date" name="date" required />
+        <label>وقت الحضور:</label>
+        <input type="time" name="checkIn" required />
+        <label>وقت الانصراف:</label>
+        <input type="time" name="checkOut" />
+        <button type="submit">تسجيل</button>
+      `;
+      break;
+    case 'transaction':
+      modalTitle.textContent = 'إضافة معاملة مالية';
+      modalForm.innerHTML = `
+        <label>التاريخ:</label>
+        <input type="date" name="date" required />
+        <label>النوع:</label>
+        <select name="type" required>
+          <option value="راتب">راتب</option>
+          <option value="مشتريات">مشتريات</option>
+          <option value="مبيعات">مبيعات</option>
+          <option value="نفقات">نفقات</option>
+        </select>
+        <label>المبلغ:</label>
+        <input type="number" step="0.01" name="amount" required />
+        <label>الوصف:</label>
+        <input name="description" />
+        <label>نوع الخدمة (للمبيعات فقط):</label>
+        <input name="serviceType" />
+        <label>موظف (ID) (لرواتب فقط):</label>
+        <input name="employeeId" type="number" />
+        <button type="submit">إضافة</button>
+      `;
+      break;
   }
-
-  modalForm.innerHTML = html;
-
-  if (type === 'attendance') {
-    // تعبئة الموظفين في اختيار الدوام
-    fillEmployeesInSelect(modalForm.querySelector('select[name="employeeId"]'));
-  }
-
   modalOverlay.classList.remove('hidden');
-}
-
-async function fillEmployeesInSelect(selectElem) {
-  const employees = await getMembersByProject(currentProjectId);
-  selectElem.innerHTML = '';
-  employees.forEach(emp => {
-    const option = document.createElement('option');
-    option.value = emp.id;
-    option.textContent = emp.name;
-    selectElem.appendChild(option);
-  });
 }
 
 function closeModal() {
   modalOverlay.classList.add('hidden');
-  modalForm.reset();
-  modalForm.innerHTML = '';
 }
 
-// حفظ بيانات النموذج
+// معالجة نموذج الإضافة
 async function onModalSubmit(e) {
   e.preventDefault();
-  const type = modalForm.dataset.type;
   const formData = new FormData(modalForm);
+  const data = Object.fromEntries(formData.entries());
 
   try {
-    if (type === 'project') {
-      const name = formData.get('name').trim();
-      if (!name) throw new Error('يرجى إدخال اسم المشروع');
-      await addProject({ name });
-      await loadProjects();
-      closeModal();
+    switch(modalTitle.textContent) {
+      case 'إضافة مشروع جديد':
+        if (!data.name.trim()) throw 'اسم المشروع مطلوب';
+        await addProject({
+          name: data.name.trim(),
+          description: data.description || '',
+          startDate: data.startDate || '',
+          endDate: data.endDate || ''
+        });
+        await loadProjects();
+        break;
 
-    } else if (type === 'task') {
-      if (!currentProjectId) throw new Error('اختر مشروع أولا');
-      const title = formData.get('title').trim();
-      if (!title) throw new Error('يرجى إدخال عنوان المهمة');
-      await addTask({ projectId: currentProjectId, title });
-      renderCurrentTab();
-      closeModal();
+      case 'إضافة مهمة جديدة':
+        if (!data.title.trim()) throw 'عنوان المهمة مطلوب';
+        await addTask({
+          projectId: currentProjectId,
+          title: data.title.trim(),
+          description: data.description || '',
+          status: data.status || 'معلقة'
+        });
+        renderCurrentTab();
+        break;
 
-    } else if (type === 'member') {
-      if (!currentProjectId) throw new Error('اختر مشروع أولا');
-      const name = formData.get('name').trim();
-      const role = formData.get('role').trim();
-      const dailySalary = parseFloat(formData.get('dailySalary')) || 0;
-      if (!name) throw new Error('يرجى إدخال اسم الموظف');
-      await addMember({ projectId: currentProjectId, name, role, dailySalary });
-      renderCurrentTab();
-      closeModal();
+      case 'إضافة موظف جديد':
+        if (!data.name.trim()) throw 'اسم الموظف مطلوب';
+        await addMember({
+          projectId: currentProjectId,
+          name: data.name.trim(),
+          role: data.role || '',
+          dailySalary: parseFloat(data.dailySalary) || 0
+        });
+        renderCurrentTab();
+        break;
 
-    } else if (type === 'attendance') {
-      if (!currentProjectId) throw new Error('اختر مشروع أولا');
-      const employeeId = Number(formData.get('employeeId'));
-      const date = formData.get('date');
-      const checkIn = formData.get('checkIn');
-      const checkOut = formData.get('checkOut');
-      if (!employeeId || !date || !checkIn || !checkOut) throw new Error('يرجى تعبئة كل الحقول');
-      await addAttendance({ employeeId, date, checkIn, checkOut });
-      renderCurrentTab();
-      closeModal();
+      case 'تسجيل دوام':
+        if (!data.employeeId) throw 'رقم الموظف مطلوب';
+        await addAttendance({
+          projectId: currentProjectId,
+          employeeId: parseInt(data.employeeId),
+          date: data.date,
+          checkIn: data.checkIn,
+          checkOut: data.checkOut || ''
+        });
+        renderCurrentTab();
+        break;
 
-    } else if (type === 'transaction') {
-      if (!currentProjectId) throw new Error('اختر مشروع أولا');
-      const trType = formData.get('type');
-      const amount = parseFloat(formData.get('amount'));
-      const description = formData.get('description').trim();
-      const date = formData.get('date');
-      const serviceType = formData.get('serviceType').trim();
-      const salaryEmployeeId = Number(formData.get('salaryEmployeeId'));
-      if (!trType || !amount || amount <= 0 || !date) throw new Error('يرجى تعبئة الحقول المطلوبة');
-      let transaction = {
-        projectId: currentProjectId,
-        type: trType,
-        amount,
-        description,
-        date,
-        serviceType: trType === 'مبيعات' ? serviceType : null,
-        employeeId: trType === 'راتب' ? salaryEmployeeId : null,
-      };
-      await addTransaction(transaction);
-      renderCurrentTab();
-      closeModal();
+      case 'إضافة معاملة مالية':
+        if (!data.date || !data.type || !data.amount) throw 'الحقول المطلوبة غير مكتملة';
+        await addTransaction({
+          projectId: currentProjectId,
+          date: data.date,
+          type: data.type,
+          amount: parseFloat(data.amount),
+          description: data.description || '',
+          serviceType: data.serviceType || '',
+          employeeId: data.employeeId ? parseInt(data.employeeId) : null
+        });
+        renderCurrentTab();
+        break;
     }
-  } catch (error) {
-    alert(error.message);
+  } catch(err) {
+    alert(err);
   }
+  closeModal();
 }
 
-// عرض التبويب الحالي
+// عرض محتوى التبويب الحالي
 async function renderCurrentTab() {
   if (!currentProjectId) {
-    tabContent.textContent = 'يرجى اختيار مشروع أولاً.';
+    tabContent.innerHTML = '<p>اختر مشروعاً للعرض</p>';
     return;
   }
 
-  if (currentTab === 'summary') {
-    await renderSummary();
-  } else if (currentTab === 'tasks') {
-    await renderTasks();
-  } else if (currentTab === 'employees') {
-    await renderEmployees();
-  } else if (currentTab === 'attendance') {
-    await renderAttendance();
-  } else if (currentTab === 'finance') {
-    await renderFinance();
-  } else if (currentTab === 'reports') {
-    await renderReports();
+  switch(currentTab) {
+    case 'summary':
+      await renderSummary();
+      break;
+    case 'tasks':
+      await renderTasks();
+      break;
+    case 'employees':
+      await renderEmployees();
+      break;
+    case 'attendance':
+      await renderAttendance();
+      break;
+    case 'finance':
+      await renderFinance();
+      break;
+    case 'reports':
+      await renderReports();
+      break;
   }
 }
-
-// ====== عرض البيانات ======
 
 async function renderSummary() {
   const project = await getProjectById(currentProjectId);
   const tasks = await getTasksByProject(currentProjectId);
-  const members = await getMembersByProject(currentProjectId);
-  const transactions = await getTransactionsByProject(currentProjectId);
 
-  let totalIncome = 0;
-  let totalExpenses = 0;
-  transactions.forEach(t => {
-    if (t.type === 'مبيعات') totalIncome += t.amount;
-    else totalExpenses += t.amount;
-  });
+  let completedTasks = tasks.filter(t => t.status === 'مكتملة').length;
+  let progress = tasks.length ? ((completedTasks / tasks.length) * 100).toFixed(1) : 0;
 
   tabContent.innerHTML = `
-    <h2>ملخص المشروع: ${project.name}</h2>
-    <p>عدد المهام: ${tasks.length}</p>
-    <p>عدد الموظفين: ${members.length}</p>
-    <p>إجمالي الإيرادات: ${totalIncome.toFixed(2)}</p>
-    <p>إجمالي المصروفات: ${totalExpenses.toFixed(2)}</p>
-    <p>الرصيد الحالي: ${(totalIncome - totalExpenses).toFixed(2)}</p>
+    <p><strong>الوصف:</strong> ${project.description || '-'}</p>
+    <p><strong>تاريخ البداية:</strong> ${project.startDate || '-'}</p>
+    <p><strong>تاريخ النهاية:</strong> ${project.endDate || '-'}</p>
+    <p><strong>عدد المهام:</strong> ${tasks.length}</p>
+    <p><strong>نسبة الإنجاز:</strong> ${progress}%</p>
   `;
 }
 
 async function renderTasks() {
   const tasks = await getTasksByProject(currentProjectId);
   if (tasks.length === 0) {
-    tabContent.innerHTML = '<p>لا توجد مهام.</p>';
+    tabContent.innerHTML = '<p>لا توجد مهام حالياً.</p>';
     return;
   }
-  let html = `<table><thead><tr><th>المهمة</th></tr></thead><tbody>`;
+
+  let html = `<table><thead><tr><th>عنوان المهمة</th><th>الحالة</th></tr></thead><tbody>`;
   tasks.forEach(t => {
-    html += `<tr><td>${t.title}</td></tr>`;
+    html += `<tr><td>${t.title}</td><td>${t.status}</td></tr>`;
   });
   html += `</tbody></table>`;
   tabContent.innerHTML = html;
@@ -644,9 +512,9 @@ async function renderEmployees() {
     tabContent.innerHTML = '<p>لا يوجد موظفين.</p>';
     return;
   }
-  let html = `<table><thead><tr><th>الاسم</th><th>الوظيفة</th><th>الراتب اليومي</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>الاسم</th><th>الدور</th><th>الراتب اليومي</th></tr></thead><tbody>`;
   members.forEach(m => {
-    html += `<tr><td>${m.name}</td><td>${m.role || '-'}</td><td>${m.dailySalary || 0}</td></tr>`;
+    html += `<tr><td>${m.name}</td><td>${m.role || '-'}</td><td>${m.dailySalary.toFixed(2)}</td></tr>`;
   });
   html += `</tbody></table>`;
   tabContent.innerHTML = html;
@@ -659,12 +527,14 @@ async function renderAttendance() {
     return;
   }
   let html = `<table><thead><tr><th>الموظف</th><th>التاريخ</th><th>حضور</th><th>انصراف</th></tr></thead><tbody>`;
+  const members = await getMembersByProject(currentProjectId);
   attendanceRecords.forEach(r => {
+    let emp = members.find(m => m.id === r.employeeId);
     html += `<tr>
-      <td>${r.employeeName || '-'}</td>
+      <td>${emp ? emp.name : 'غير معروف'}</td>
       <td>${r.date}</td>
       <td>${r.checkIn}</td>
-      <td>${r.checkOut}</td>
+      <td>${r.checkOut || '-'}</td>
     </tr>`;
   });
   html += `</tbody></table>`;
@@ -680,15 +550,14 @@ async function renderFinance() {
 
   let html = `<table><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>الوصف</th></tr></thead><tbody>`;
   transactions.forEach(t => {
-    const cls = `type-${t.type}`;
     let desc = t.description || '-';
-    if(t.type === 'مبيعات' && t.serviceType){
+    if (t.type === 'مبيعات' && t.serviceType) {
       desc += ` (الخدمة: ${t.serviceType})`;
     }
-    if(t.type === 'راتب' && t.employeeId){
-      desc += ` (موظف: ${t.employeeId})`;
+    if (t.type === 'راتب' && t.employeeId) {
+      desc += ` (موظف ID: ${t.employeeId})`;
     }
-    html += `<tr class="${cls}">
+    html += `<tr>
       <td>${t.date}</td>
       <td>${t.type}</td>
       <td>${t.amount.toFixed(2)}</td>
@@ -703,7 +572,7 @@ async function renderReports() {
   tabContent.innerHTML = '<p>ميزة التقارير قيد التطوير...</p>';
 }
 
-// ======= بدء التطبيق =======
+// بدء التطبيق
 (async function init() {
   await openDB();
   initEvents();
