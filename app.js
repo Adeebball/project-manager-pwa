@@ -533,6 +533,7 @@ modalOverlay.addEventListener("click", (e) => {
   if (e.target === modalOverlay) closeModal();
 });
 
+
 // حدث بحث المشاريع
 projectSearchInput.addEventListener("input", (e) => {
   renderProjectsList(e.target.value);
