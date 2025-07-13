@@ -3,36 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة المشاريع المتكاملة</title>
+  <title>مدير المشاريع</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <aside>
       <h2>المشاريع</h2>
-      <input type="text" id="projectSearch" placeholder="ابحث عن مشروع..." />
+      <input
+        type="text"
+        id="projectSearch"
+        placeholder="ابحث عن مشروع..."
+        autocomplete="off"
+      />
       <ul id="projectsList"></ul>
-      <button id="btnNewProject" class="btn">+ مشروع جديد</button>
+      <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
     </aside>
+
     <main>
       <nav>
-        <button class="tab active" data-tab="summary">الملخص</button>
+        <button class="tab active" data-tab="summary">ملخص</button>
         <button class="tab" data-tab="tasks">المهام</button>
-        <button class="tab" data-tab="todo">To-Do</button>
-        <button class="tab" data-tab="goals">الأهداف</button>
-        <button class="tab" data-tab="notes">الملاحظات</button>
         <button class="tab" data-tab="team">الفريق</button>
         <button class="tab" data-tab="finance">المحاسبة</button>
-        <button class="tab" data-tab="settings">الإعدادات</button>
+        <button class="tab" data-tab="todo">To-Do</button>
+        <button class="tab" data-tab="notes">ملاحظات</button>
       </nav>
-      <section id="tabContent" class="tab-content"></section>
+
+      <section id="tabContent" class="tab-content">
+        <!-- المحتوى يتغير حسب التبويب -->
+      </section>
     </main>
   </div>
 
-  <!-- المودال -->
+  <!-- مودال موحد -->
   <div id="modalOverlay" class="hidden">
     <div class="modal glass-card">
-      <h2 id="modalTitle"></h2>
+      <h3 id="modalTitle"></h3>
       <form id="modalForm"></form>
       <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
     </div>
@@ -41,4 +48,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
