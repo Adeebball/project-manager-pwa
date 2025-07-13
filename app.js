@@ -63,11 +63,20 @@ function renderTabContent() {
 }
 
 function renderSummary(project) {
+  const teamList = (project.team || [])
+    .map((m) => `${m.name} (${m.role})`)
+    .join(", ") || "لا يوجد أعضاء فريق";
+
   tabContent.innerHTML = `
     <h3>ملخص المشروع: ${project.name}</h3>
     <p><strong>الوصف:</strong> ${project.description || "لا يوجد وصف"}</p>
     <p><strong>تاريخ البداية:</strong> ${project.startDate || "-"}</p>
     <p><strong>تاريخ النهاية المتوقع:</strong> ${project.endDate || "-"}</p>
+    <p><strong>ميزانية المشروع:</strong> ${project.budget ? project.budget.toLocaleString() + " USD" : "غير محددة"}</p>
+    <p><strong>الفريق:</strong> ${teamList}</p>
+  `;
+}
+
   `;
 }
 
