@@ -1,33 +1,41 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>مدير المشاريع</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="app">
-      <aside>
-        <h2>مشاريعي</h2>
-        <input
-          type="text"
-          id="projectSearch"
-          placeholder="ابحث عن مشروع..."
-          autocomplete="off"
-        />
-        <ul id="projectsList"></ul>
-        <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
-      </aside>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مدير المشاريع</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside>
+      <h2>مشاريعي</h2>
+      <input
+        type="text"
+        id="projectSearch"
+        placeholder="ابحث عن مشروع..."
+        autocomplete="off"
+      />
+      <ul id="projectsList"></ul>
+      <button id="btnNewProject" class="glass-btn">+ مشروع جديد</button>
+    </aside>
 
-      <main>
-        <nav>
-          <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
-        </nav>
-        <section id="tabContent" class="tab-content glass-card"></section>
-      </main>
-    </div>
+    <main>
+      <nav>
+        <button class="tab active glass-btn" data-tab="summary">ملخص</button>
+        <button class="tab glass-btn" data-tab="tasks">مهام</button>
+        <button class="tab glass-btn" data-tab="todo">To-Do</button>
+        <button class="tab glass-btn" data-tab="team">الفريق</button>
+        <button class="tab glass-btn" data-tab="notes">ملاحظات</button>
+        <button class="tab glass-btn" data-tab="finance">محاسبة</button>
+      </nav>
 
-    <script src="app.js"></script>
-  </body>
+      <section id="tabContent" class="tab-content">
+        <p>يرجى اختيار مشروع لعرض التفاصيل.</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
 </html>
