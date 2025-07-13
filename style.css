@@ -4,276 +4,189 @@
   margin: 0;
   padding: 0;
 }
-
-body {
-  background: linear-gradient(135deg, #1e1e2f, #2a2a3d);
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  direction: rtl;
+html, body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom right, #1e1e1e, #2a2a2a);
+  color: #fff;
   min-height: 100vh;
-  padding: 20px;
+  direction: rtl;
 }
 
 /* Container */
 .container {
-  max-width: 1100px;
+  padding: 20px;
+  max-width: 1200px;
   margin: auto;
 }
 
 /* Header */
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
 header h1 {
-  text-align: center;
-  font-weight: 700;
-  margin-bottom: 25px;
-  font-size: 2.5rem;
-  user-select: none;
-}
-
-/* المشاريع */
-.projects-section {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 20px;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 0 15px rgba(90, 90, 184, 0.25);
-  margin-bottom: 30px;
-}
-
-.projects-section button.btn {
-  background: #5a5ab8;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 25px;
-  color: white;
+  font-size: 2rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s ease;
+  color: #ffffff;
+  text-shadow: 0 0 10px #4fc3f7;
 }
 
-.projects-section button.btn:hover {
-  background: #4545a3;
-}
-
-/* قائمة المشاريع */
-.projects-list {
-  list-style: none;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-top: 15px;
-  padding-right: 5px;
-}
-
-.projects-list li {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 14px 20px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  font-weight: 600;
-  font-size: 1.1rem;
-  user-select: none;
-}
-
-.projects-list li:hover,
-.projects-list li.active {
-  background: rgba(255, 255, 255, 0.35);
-  color: #222;
-}
-
-/* تفاصيل المشروع */
-.project-details {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 25px;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 0 30px rgba(90, 90, 184, 0.3);
-}
-
-/* إخفاء */
-.hidden {
-  display: none !important;
-}
-
-/* عنوان المشروع */
-h2#currentProjectName {
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-}
-
-/* التبويبات */
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
-}
-
-.tab {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  padding: 12px 25px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 1rem;
-  color: white;
-  transition: background 0.3s ease;
-  user-select: none;
-}
-
-.tab.active,
-.tab:hover {
-  background: #5a5ab8;
-  color: white;
-  box-shadow: 0 0 15px #5a5ab8;
-}
-
-/* أزرار الإجراءات */
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
-}
-
+/* Buttons */
 .btn {
-  background: #3a3a5c;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: white;
-  padding: 12px 25px;
-  border-radius: 25px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 1rem;
-  user-select: none;
-  transition: background 0.3s ease;
-  min-width: 150px;
-}
-
-.btn:hover:not(:disabled) {
-  background: #5a5ab8;
-}
-
-.btn:disabled {
-  background: #55557799;
-  cursor: not-allowed;
-}
-
-/* محتوى التبويب */
-.tab-content {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 15px;
-  padding: 20px;
-  min-height: 320px;
-  overflow-y: auto;
-  font-size: 1rem;
-  box-shadow: 0 0 15px rgba(90, 90, 184, 0.2);
-}
-
-/* الجداول */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: white;
-}
-
-th,
-td {
-  padding: 12px 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  text-align: center;
-}
-
-thead th {
-  background: rgba(255, 255, 255, 0.25);
-  font-weight: 700;
-}
-
-/* المودال */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.modal-overlay.hidden {
-  display: none;
-}
-
-.modal {
-  background: rgba(255, 255, 255, 0.12);
-  padding: 30px 35px;
-  border-radius: 20px;
   backdrop-filter: blur(15px);
-  width: 90%;
-  max-width: 480px;
-  color: white;
-  box-shadow: 0 0 30px #5a5ab8aa;
+  transition: background 0.3s ease;
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.btn.secondary {
+  background: rgba(255, 0, 0, 0.1);
 }
 
-.modal h3 {
-  margin-bottom: 20px;
-  font-weight: 700;
-  text-align: center;
-  user-select: none;
+/* Layout */
+main {
+  display: flex;
+  gap: 20px;
 }
 
-.modal form label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
+/* Sidebar - المشاريع */
+.projects-section {
+  width: 30%;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
-
-.modal form input,
-.modal form select {
+#projectSearch {
+  margin: 15px 0;
   width: 100%;
   padding: 10px 15px;
-  margin-bottom: 15px;
   border-radius: 12px;
   border: none;
-  outline: none;
   background: rgba(255, 255, 255, 0.15);
   color: white;
   font-size: 1rem;
-  box-sizing: border-box;
-  user-select: text;
+  outline: none;
 }
-
-.modal form button {
-  width: 100%;
-  padding: 14px 0;
-  border-radius: 25px;
-  border: none;
-  background: #5a5ab8;
-  color: white;
-  font-weight: 700;
-  font-size: 1.1rem;
+#projectSearch::placeholder {
+  color: #ccc;
+}
+.projects-list {
+  list-style: none;
+}
+.projects-list li {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
-
-.modal form button:hover {
-  background: #4545a3;
+.projects-list li:hover,
+.projects-list li.active {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.cancel-btn {
-  margin-top: 12px;
-  background: #b84a4a;
-  font-weight: 600;
+/* Details */
+.details-section {
+  width: 70%;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
-.cancel-btn:hover {
-  background: #8b3939;
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.tab:hover,
+.tab.active {
+  background: rgba(255, 255, 255, 0.25);
 }
 
+/* Tab Content */
+.tab-content {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.tab-content.show {
+  opacity: 1;
+  transform: translateY(0);
+}
 
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 10, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 20px;
+  width: 400px;
+  color: #fff;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(25px);
+}
+.modal h2 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+.modal label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+.modal input,
+.modal select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  outline: none;
+}
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
