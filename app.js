@@ -1,10 +1,9 @@
-// ========== إعداد قاعدة بيانات IndexedDB ==========
+// ==================== قاعدة البيانات IndexedDB ====================
 const DB_NAME = 'ProjectManagerDB';
 const DB_VERSION = 1;
 let db;
 let currentProjectId = null;
 
-// فتح أو إنشاء قاعدة البيانات
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -23,6 +22,10 @@ function openDB() {
         const store = db.createObjectStore('members', { keyPath: 'id', autoIncrement: true });
         store.createIndex('projectId', 'projectId', { unique: false });
       }
+      if (!db.objectStoreNames.contains('transactions')) {
+        const store = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('projectId', 'projectId', { unique: false });
+      }
     };
 
     request.onsuccess = function (e) {
@@ -36,36 +39,31 @@ function openDB() {
   });
 }
 
-// ========================== الوظائف الأساسية =========================
-
-// إضافة مشروع جديد
+// ==================== وظائف المشاريع ====================
 function addProject(project) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('projects', 'readwrite');
     const store = tx.objectStore('projects');
     const req = store.add(project);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بإضافة المشروع');
   });
 }
 
-// تحديث مشروع
 function updateProject(project) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('projects', 'readwrite');
     const store = tx.objectStore('projects');
     const req = store.put(project);
-
     req.onsuccess = () => resolve();
     req.onerror = () => reject('فشل بتحديث المشروع');
   });
 }
 
-// حذف مشروع مع كل المهام والأعضاء المرتبطين
 async function deleteProject(id) {
   await deleteTasksByProject(id);
   await deleteMembersByProject(id);
+  await deleteTransactionsByProject(id);
   return new Promise((resolve, reject) => {
     const tx = db.transaction('projects', 'readwrite');
     const store = tx.objectStore('projects');
@@ -75,44 +73,38 @@ async function deleteProject(id) {
   });
 }
 
-// جلب كل المشاريع
 function getAllProjects() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('projects', 'readonly');
     const store = tx.objectStore('projects');
     const req = store.getAll();
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بجلب المشاريع');
   });
 }
 
-// إضافة مهمة
+// ==================== مهام المشاريع ====================
 function addTask(task) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('tasks', 'readwrite');
     const store = tx.objectStore('tasks');
     const req = store.add(task);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بإضافة المهمة');
   });
 }
 
-// جلب المهام حسب المشروع
 function getTasksByProject(projectId) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('tasks', 'readonly');
     const store = tx.objectStore('tasks');
     const index = store.index('projectId');
     const req = index.getAll(projectId);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بجلب المهام');
   });
 }
 
-// حذف مهمة
 function deleteTask(id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('tasks', 'readwrite');
@@ -123,7 +115,6 @@ function deleteTask(id) {
   });
 }
 
-// حذف مهام مشروع كامل
 function deleteTasksByProject(projectId) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('tasks', 'readwrite');
@@ -144,32 +135,28 @@ function deleteTasksByProject(projectId) {
   });
 }
 
-// إضافة عضو
+// ==================== أعضاء المشاريع ====================
 function addMember(member) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('members', 'readwrite');
     const store = tx.objectStore('members');
     const req = store.add(member);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بإضافة العضو');
   });
 }
 
-// جلب أعضاء حسب المشروع
 function getMembersByProject(projectId) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('members', 'readonly');
     const store = tx.objectStore('members');
     const index = store.index('projectId');
     const req = index.getAll(projectId);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject('فشل بجلب الأعضاء');
   });
 }
 
-// حذف عضو
 function deleteMember(id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('members', 'readwrite');
@@ -180,7 +167,6 @@ function deleteMember(id) {
   });
 }
 
-// حذف أعضاء مشروع كامل
 function deleteMembersByProject(projectId) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('members', 'readwrite');
@@ -201,8 +187,49 @@ function deleteMembersByProject(projectId) {
   });
 }
 
-// ================== DOM & تعامل الواجهة =================
+// ==================== نظام الميزانية: المدفوعات والنفقات ====================
+function addTransaction(transaction) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('transactions', 'readwrite');
+    const store = tx.objectStore('transactions');
+    const req = store.add(transaction);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بإضافة المعاملة');
+  });
+}
 
+function getTransactionsByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('transactions', 'readonly');
+    const store = tx.objectStore('transactions');
+    const index = store.index('projectId');
+    const req = index.getAll(projectId);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بجلب المعاملات');
+  });
+}
+
+function deleteTransactionsByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('transactions', 'readwrite');
+    const store = tx.objectStore('transactions');
+    const index = store.index('projectId');
+    const req = index.openCursor(projectId);
+
+    req.onsuccess = function (e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        store.delete(cursor.primaryKey);
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    req.onerror = () => reject('فشل بحذف معاملات المشروع');
+  });
+}
+
+// ==================== تفاعل المستخدم و DOM ====================
 const projectsList = document.getElementById('projectsList');
 const btnNewProject = document.getElementById('btnNewProject');
 const searchInput = document.getElementById('searchInput');
@@ -224,6 +251,8 @@ const tasksList = document.getElementById('tasksList');
 const btnAddMember = document.getElementById('btnAddMember');
 const teamList = document.getElementById('teamList');
 
+const reportsContent = document.getElementById('reportsContent');
+
 const modalOverlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalForm = document.getElementById('modalForm');
@@ -232,7 +261,7 @@ const modalSubmit = document.getElementById('modalSubmit');
 
 let currentTab = 'overview';
 
-// تهيئة التطبيق
+// بدء التطبيق
 async function init() {
   await openDB();
   renderProjectsList();
@@ -272,21 +301,21 @@ function setupEventListeners() {
   modalSubmit.addEventListener('click', onModalSubmit);
 }
 
-// تبديل التبويبات
 function switchTab(tabName) {
   currentTab = tabName;
   tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
   tabContents.forEach(tc => tc.classList.toggle('active', tc.id === tabName));
-  if (tabName === 'tasks' && currentProjectId) {
+  if (!currentProjectId) return;
+
+  if (tabName === 'tasks') {
     renderTasksList(currentProjectId);
-  } else if (tabName === 'team' && currentProjectId) {
+  } else if (tabName === 'team') {
     renderTeamList(currentProjectId);
-  } else if (tabName === 'reports' && currentProjectId) {
+  } else if (tabName === 'reports') {
     renderReports(currentProjectId);
   }
 }
 
-// عرض قائمة المشاريع
 async function renderProjectsList(filter = '') {
   const projects = await getAllProjects();
   projectsList.innerHTML = '';
@@ -305,7 +334,6 @@ async function renderProjectsList(filter = '') {
   });
 }
 
-// فتح مشروع للعرض والتعديل
 async function openProject(id) {
   currentProjectId = id;
   const tx = db.transaction('projects', 'readonly');
@@ -327,7 +355,7 @@ async function openProject(id) {
   req.onerror = () => alert('فشل بفتح المشروع');
 }
 
-// فتح نموذج إضافة / تعديل
+// النماذج: فتح
 function openProjectModal(title, type, data = {}) {
   modalTitle.textContent = title;
   modalForm.innerHTML = '';
@@ -394,7 +422,7 @@ function closeModal() {
   modalForm.dataset.editingId = '';
 }
 
-// عند حفظ النموذج
+// حفظ النموذج
 async function onModalSubmit(e) {
   e.preventDefault();
   const type = modalForm.dataset.type;
@@ -465,7 +493,6 @@ async function onModalSubmit(e) {
   }
 }
 
-// عرض قائمة المهام
 async function renderTasksList(projectId) {
   const tasks = await getTasksByProject(projectId);
   tasksList.innerHTML = '';
@@ -478,7 +505,6 @@ async function renderTasksList(projectId) {
     const li = document.createElement('li');
     li.textContent = `${task.title} [${task.status}] - موعد: ${task.dueDate || '-'}`;
 
-    // زر حذف
     const delBtn = document.createElement('button');
     delBtn.textContent = 'حذف';
     delBtn.className = 'btn secondary';
@@ -496,7 +522,6 @@ async function renderTasksList(projectId) {
   });
 }
 
-// عرض قائمة الأعضاء
 async function renderTeamList(projectId) {
   const members = await getMembersByProject(projectId);
   teamList.innerHTML = '';
@@ -509,7 +534,6 @@ async function renderTeamList(projectId) {
     const li = document.createElement('li');
     li.textContent = `${member.name} (${member.role}) - ${member.email || '-'}`;
 
-    // زر حذف
     const delBtn = document.createElement('button');
     delBtn.textContent = 'حذف';
     delBtn.className = 'btn secondary';
@@ -527,13 +551,29 @@ async function renderTeamList(projectId) {
   });
 }
 
-// عرض تقارير المشروع (مؤقت)
-function renderReports(projectId) {
-  const reportsDiv = document.getElementById('reportsContent');
-  reportsDiv.innerHTML = `
-    <p>تقارير قيد التطوير...</p>
-    <p>عدد المهام: غير متوفر حالياً</p>
-    <p>عدد الأعضاء: غير متوفر حالياً</p>
+async function renderReports(projectId) {
+  const projects = await getAllProjects();
+  const project = projects.find(p => p.id === projectId);
+  const tasks = await getTasksByProject(projectId);
+  const members = await getMembersByProject(projectId);
+  const transactions = await getTransactionsByProject(projectId);
+
+  let totalIncome = 0;
+  let totalExpense = 0;
+  transactions.forEach(tx => {
+    if (tx.type === 'إيراد') totalIncome += Number(tx.amount);
+    else if (tx.type === 'مصروف') totalExpense += Number(tx.amount);
+  });
+  const netProfit = totalIncome - totalExpense;
+
+  reportsContent.innerHTML = `
+    <p>اسم المشروع: <strong>${project.name}</strong></p>
+    <p>عدد المهام: <strong>${tasks.length}</strong></p>
+    <p>عدد الأعضاء: <strong>${members.length}</strong></p>
+    <p>الإيرادات الكلية: <strong>${totalIncome.toFixed(2)} </strong></p>
+    <p>النفقات الكلية: <strong>${totalExpense.toFixed(2)}</strong></p>
+    <p>صافي الأرباح: <strong>${netProfit.toFixed(2)}</strong></p>
+    <p>حالة المشروع: <strong>${project.status}</strong></p>
   `;
 }
 
