@@ -3,49 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة المشاريع والمحافظة المالية</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>تطبيق إدارة المشاريع والمالية</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <aside class="sidebar glass">
-    <h2>المشاريع</h2>
-    <ul id="projectsList"></ul>
-    <button id="btnNewProject">+ إضافة مشروع جديد</button>
-  </aside>
-
-  <main class="main-content glass">
+  <div class="container">
     <header>
-      <h1 id="currentProjectName">يرجى اختيار مشروع</h1>
-      <button id="btnAddTask" disabled>+ إضافة مهمة جديدة</button>
-      <button id="btnAddMember" disabled>+ إضافة موظف جديد</button>
-      <button id="btnAddAttendance" disabled>+ تسجيل دوام</button>
-      <button id="btnAddTransaction" disabled>+ إضافة معاملة مالية</button>
+      <h1>إدارة المشاريع</h1>
     </header>
 
-    <nav class="tabs">
-      <button data-tab="summary" class="tab active">ملخص</button>
-      <button data-tab="tasks" class="tab">المهام</button>
-      <button data-tab="employees" class="tab">الموظفين</button>
-      <button data-tab="attendance" class="tab">سجل الدوام</button>
-      <button data-tab="finance" class="tab">المحاسبة</button>
-      <button data-tab="reports" class="tab">التقارير</button>
-    </nav>
-
-    <section id="tabContent" class="tab-content">
-      <!-- المحتوى الديناميكي حسب التبويب -->
-      اختر مشروع لعرض التفاصيل
+    <section class="projects-section">
+      <button id="btnNewProject" class="btn">+ مشروع جديد</button>
+      <ul id="projectsList" class="projects-list"></ul>
     </section>
-  </main>
 
-  <!-- مودال عام -->
-  <div id="modalOverlay" class="hidden">
-    <div class="modal glass">
+    <section class="project-details hidden">
+      <h2 id="currentProjectName"></h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="summary">ملخص</button>
+        <button class="tab" data-tab="tasks">المهام</button>
+        <button class="tab" data-tab="employees">الموظفين</button>
+        <button class="tab" data-tab="attendance">الدوام</button>
+        <button class="tab" data-tab="finance">المحاسبة</button>
+        <button class="tab" data-tab="reports">التقارير</button>
+      </div>
+
+      <div class="actions">
+        <button id="btnAddTask" class="btn" disabled>+ مهمة جديدة</button>
+        <button id="btnAddMember" class="btn" disabled>+ موظف جديد</button>
+        <button id="btnAddAttendance" class="btn" disabled>+ تسجيل دوام</button>
+        <button id="btnAddTransaction" class="btn" disabled>+ معاملة مالية</button>
+      </div>
+
+      <div id="tabContent" class="tab-content"></div>
+    </section>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
       <h3 id="modalTitle"></h3>
-      <form id="modalForm">
-        <!-- حقول ديناميكية -->
-      </form>
-      <button id="modalCancel">إلغاء</button>
+      <form id="modalForm"></form>
+      <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
     </div>
   </div>
 
