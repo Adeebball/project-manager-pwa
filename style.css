@@ -1,149 +1,138 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
-
-* {
-  box-sizing: border-box;
-}
-
+/* --- ستايل ليكود غلاس شفاف --- */
 body {
   margin: 0;
-  font-family: 'Cairo', sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: #e0e0e0;
   direction: rtl;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .app-container {
   display: flex;
-  width: 90vw;
-  height: 90vh;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  height: 100vh;
   overflow: hidden;
 }
 
+/* الشريط الجانبي */
 .sidebar {
-  width: 320px;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 2rem 1.5rem;
-  color: #f0f0f0;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  box-shadow: inset -1px 0 10px rgba(255,255,255,0.1);
-  border-radius: 20px 0 0 20px;
+  gap: 10px;
 }
 
 .sidebar h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 15px 0;
   font-weight: 700;
-  font-size: 1.7rem;
+  color: #fff;
   text-align: center;
-  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  text-shadow: 0 0 8px rgba(0,0,0,0.5);
 }
 
 .btn {
-  border: none;
-  padding: 0.75rem 1.2rem;
-  border-radius: 12px;
-  cursor: pointer;
+  padding: 10px 16px;
   font-weight: 600;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+}
+
+.btn.primary {
   background: rgba(255, 255, 255, 0.25);
-  color: #e0e0e0;
-  box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+  color: #1e90ff;
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 10px rgba(30, 144, 255, 0.7);
 }
 
 .btn.primary:hover {
-  background: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  background: rgba(30, 144, 255, 0.2);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(30, 144, 255, 0.9);
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ccc;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ff6b6b;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
 }
 
 .btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 107, 107, 0.2);
   color: #fff;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
 }
 
-input[type="search"] {
-  padding: 0.7rem 1rem;
-  border-radius: 15px;
+input[type="search"], input[type="text"], input[type="date"], input[type="number"], textarea, select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 20px;
   border: none;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  color: #eee;
-  box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  outline: none;
   transition: background-color 0.3s ease;
 }
 
-input[type="search"]::placeholder {
-  color: #ddd;
-}
-
-input[type="search"]:focus {
-  background: rgba(255, 255, 255, 0.3);
-  outline: none;
+input[type="search"]:focus,
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  background: rgba(255,255,255,0.3);
+  box-shadow: 0 0 8px rgba(30,144,255,0.6);
 }
 
 .list {
   list-style: none;
-  margin: 0;
   padding: 0;
-  flex-grow: 1;
+  margin: 0;
   overflow-y: auto;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 15px;
-  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  max-height: calc(100vh - 230px);
 }
 
 .list li {
-  padding: 0.8rem 1.2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  border-radius: 15px;
   cursor: pointer;
+  transition: background-color 0.25s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #f0f0f0;
-  transition: background-color 0.3s ease;
+  user-select: none;
+  box-shadow: 0 0 6px rgba(0,0,0,0.15);
 }
 
 .list li:hover {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  background: rgba(30, 144, 255, 0.2);
 }
 
 .main-content {
-  flex-grow: 1;
-  padding: 1.5rem 2.5rem;
+  flex: 1;
+  padding: 20px 30px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 0 20px 20px 0;
-  box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(25px);
+  border-radius: 0 0 0 20px;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
 }
 
 .hidden {
@@ -154,95 +143,109 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.2rem;
-  color: #e0e0e0;
-  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+header h1 {
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #00aaff;
+  text-shadow: 0 0 8px rgba(0, 170, 255, 0.7);
 }
 
 .tabs {
   display: flex;
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .tab-btn {
+  flex: 1;
+  padding: 10px 0;
   background: rgba(255, 255, 255, 0.15);
-  border: none;
-  padding: 0.6rem 1.2rem;
   border-radius: 20px;
-  cursor: pointer;
+  border: none;
+  color: #ccc;
   font-weight: 600;
-  color: #cfcfcf;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  transition: background-color 0.3s ease;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
 }
 
+.tab-btn.active,
 .tab-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.tab-btn.active {
-  background: #1c6feb;
-  color: white;
-  box-shadow: 0 0 20px #1c6feb;
+  background: rgba(0, 170, 255, 0.9);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0, 170, 255, 0.9);
 }
 
 .tab-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  color: #eaeaea;
+  display: none;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 9999;
 }
 
 .modal {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem 2.5rem;
-  width: 100%;
-  max-width: 480px;
-  box-shadow: 0 0 30px rgba(255,255,255,0.3);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  color: #eaeaea;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  padding: 20px 30px;
+  border-radius: 25px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 0 20px rgba(0, 170, 255, 0.6);
+  color: #fff;
+  font-size: 14px;
+}
+
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 700;
+  text-align: center;
+  color: #00aaff;
+  text-shadow: 0 0 10px rgba(0,170,255,0.8);
 }
 
 .modal-buttons {
+  margin-top: 15px;
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 10px;
 }
 
-.modal form input,
-.modal form textarea,
-.modal form select {
-  width: 100%;
-  padding: 0.7rem 1rem;
-  margin-bottom: 1.2rem;
-  border-radius: 15px;
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* زر الحذف الصغير داخل القوائم */
+.list li button {
+  background: transparent;
   border: none;
-  font-size: 1rem;
-  font-family: 'Cairo', sans-serif;
-  background: rgba(255, 255, 255, 0.15);
-  color: #eaeaea;
-  box-shadow: inset 0 0 15px rgba(255,255,255,0.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  resize: vertical;
+  color: #ff6b6b;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 6px;
+  font-size: 14px;
+  border-radius: 12px;
+  transition: color 0.3s ease;
 }
 
-.modal form input::placeholder,
-.modal form textarea::placeholder {
-  color: #ccc;
+.list li button:hover {
+  color: #fff;
+  text-shadow: 0 0 6px #ff6b6b;
 }
