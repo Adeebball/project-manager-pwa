@@ -1,283 +1,155 @@
-// عناصر DOM
-const btnNewProject = document.getElementById('btnNewProject');
-const projectsList = document.getElementById('projectsList');
-const projectDetails = document.querySelector('.project-details');
-const currentProjectName = document.getElementById('currentProjectName');
-
-const tabs = document.querySelectorAll('.tab');
-const tabContent = document.getElementById('tabContent');
-
-const btnAddTask = document.getElementById('btnAddTask');
-const btnAddMember = document.getElementById('btnAddMember');
-const btnAddAttendance = document.getElementById('btnAddAttendance');
-const btnAddTransaction = document.getElementById('btnAddTransaction');
-
-const modalOverlay = document.getElementById('modalOverlay');
-const modalTitle = document.getElementById('modalTitle');
-const modalForm = document.getElementById('modalForm');
-const modalCancel = document.getElementById('modalCancel');
-
-let projects = JSON.parse(localStorage.getItem('projects')) || [];
+// بيانات المشاريع
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 let selectedProjectIndex = null;
-let currentTab = 'summary';
+let currentTab = "summary";
 
-// دوال تخزين واسترجاع
-function saveProjects() {
-  localStorage.setItem('projects', JSON.stringify(projects));
-}
+// العناصر
+const projectsList = document.getElementById("projectsList");
+const tabContent = document.getElementById("tabContent");
+const tabs = document.querySelectorAll(".tab");
+const btnNewProject = document.getElementById("btnNewProject");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalForm = document.getElementById("modalForm");
+const modalCancel = document.getElementById("modalCancel");
+const projectSearch = document.getElementById("projectSearch");
 
-// عرض قائمة المشاريع
+// تحديث عرض المشاريع
 function renderProjects() {
-  projectsList.innerHTML = '';
+  const filter = projectSearch.value.trim().toLowerCase();
+  projectsList.innerHTML = "";
+
   projects.forEach((proj, idx) => {
-    const li = document.createElement('li');
+    if (!proj.name.toLowerCase().includes(filter)) return;
+
+    const li = document.createElement("li");
     li.textContent = proj.name;
-    li.tabIndex = 0;
-    li.classList.toggle('active', idx === selectedProjectIndex);
-    li.addEventListener('click', () => selectProject(idx));
-    li.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') selectProject(idx);
-    });
+    li.classList.toggle("active", idx === selectedProjectIndex);
+    li.addEventListener("click", () => selectProject(idx));
     projectsList.appendChild(li);
   });
-}
 
-// اختيار مشروع
-function selectProject(idx) {
-  selectedProjectIndex = idx;
-  renderProjects();
-  showProjectDetails();
-  enableActionButtons(true);
-  renderTabContent();
-}
-
-// تفعيل/تعطيل أزرار الإضافة
-function enableActionButtons(enable) {
-  [btnAddTask, btnAddMember, btnAddAttendance, btnAddTransaction].forEach(btn => {
-    btn.disabled = !enable;
-    btn.setAttribute('aria-disabled', !enable);
-  });
-}
-
-// إظهار تفاصيل المشروع
-function showProjectDetails() {
-  if (selectedProjectIndex === null) {
-    projectDetails.classList.add('hidden');
-    currentProjectName.textContent = '-- اختر مشروع لعرض التفاصيل --';
-  } else {
-    projectDetails.classList.remove('hidden');
-    currentProjectName.textContent = projects[selectedProjectIndex].name;
+  if (!projectsList.children.length) {
+    const p = document.createElement("p");
+    p.textContent = "لا توجد مشاريع تطابق البحث.";
+    p.style.textAlign = "center";
+    p.style.marginTop = "10px";
+    projectsList.appendChild(p);
   }
 }
 
-// تغيير التبويب
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    if (!tab.classList.contains('active')) {
-      tabs.forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      currentTab = tab.getAttribute('data-tab');
-      renderTabContent();
-    }
+// اختيار مشروع
+function selectProject(index) {
+  selectedProjectIndex = index;
+  renderProjects();
+  showProjectDetails();
+  renderTabContent();
+}
+
+// عرض معلومات أساسية
+function showProjectDetails() {
+  document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+  document.querySelector(`.tab[data-tab="${currentTab}"]`)?.classList.add("active");
+  tabContent.classList.remove("show");
+}
+
+// تبويبات
+tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    currentTab = tab.dataset.tab;
+    showProjectDetails();
+    setTimeout(renderTabContent, 50); // تحريك سلس
   });
 });
 
-// عرض محتوى التبويب حسب القسم المختار
+// عرض محتوى التبويب الحالي
 function renderTabContent() {
   if (selectedProjectIndex === null) {
-    tabContent.innerHTML = '<p>اختر مشروعًا من القائمة لبدء الإدارة.</p>';
+    tabContent.innerHTML = "<p>اختر مشروعًا من القائمة لبدء الإدارة.</p>";
+    tabContent.classList.add("show");
     return;
   }
 
   const project = projects[selectedProjectIndex];
+  let html = "";
 
   switch (currentTab) {
-    case 'summary':
-      tabContent.innerHTML = `
+    case "summary":
+      html = `
         <h3>ملخص المشروع</h3>
-        <p><strong>الوصف:</strong> ${project.description || 'لا يوجد وصف'}</p>
-        <p><strong>تاريخ البداية:</strong> ${project.startDate || 'غير محدد'}</p>
-        <p><strong>تاريخ النهاية:</strong> ${project.endDate || 'غير محدد'}</p>
-        <p><strong>حالة المشروع:</strong> ${project.status || 'نشط'}</p>
+        <p><strong>الوصف:</strong> ${project.description || "—"}</p>
+        <p><strong>البداية:</strong> ${project.startDate || "—"}</p>
+        <p><strong>النهاية:</strong> ${project.endDate || "—"}</p>
+        <p><strong>الحالة:</strong> ${project.status || "نشط"}</p>
       `;
       break;
 
-    case 'tasks':
-      renderTasks(project);
+    case "tasks":
+      html = `<h3>المهام</h3><p>لاحقاً سيتم إضافة المهام هنا.</p>`;
       break;
 
-    case 'employees':
-      renderEmployees(project);
+    case "team":
+      html = `<h3>الفريق</h3><p>لاحقاً سيتم عرض الموظفين.</p>`;
       break;
 
-    case 'attendance':
-      renderAttendance(project);
+    case "attendance":
+      html = `<h3>الدوام</h3><p>لاحقاً سيتم إضافة إدارة الدوام.</p>`;
       break;
 
-    case 'finance':
-      renderFinance(project);
-      break;
+    case "finance":
+      const f = project.finance;
+      const s = project.currencySymbol || "$";
 
-    case 'reports':
-      tabContent.innerHTML = `<p>قيد التطوير...</p>`;
+      const calcTotal = (arr) => arr.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const totalSales = calcTotal(f.sales);
+      const totalPurchases = calcTotal(f.purchases);
+      const totalSalaries = calcTotal(f.salaries);
+      const totalExpenses = calcTotal(f.expenses);
+
+      const currentBalance =
+        (f.previousBalance || 0) + totalSales - totalPurchases - totalSalaries - totalExpenses;
+
+      html = `
+        <h3>البيانات المالية (${project.currency || "العملة غير محددة"})</h3>
+        <p><strong>الرصيد السابق:</strong> ${s}${f.previousBalance}</p>
+        <p><strong>المبيعات:</strong> ${s}${totalSales}</p>
+        <p><strong>المشتريات:</strong> ${s}${totalPurchases}</p>
+        <p><strong>الرواتب:</strong> ${s}${totalSalaries}</p>
+        <p><strong>النفقات:</strong> ${s}${totalExpenses}</p>
+        <hr>
+        <h4>💰 الرصيد الحالي: ${s}${currentBalance}</h4>
+        <hr>
+        <div style="margin-top: 20px">
+          <button class="btn" onclick="addTransaction('sales')">+ إضافة مبيع</button>
+          <button class="btn" onclick="addTransaction('purchases')">+ إضافة شراء</button>
+          <button class="btn" onclick="addTransaction('expenses')">+ إضافة نفقة</button>
+          <button class="btn" onclick="addTransaction('salaries')">+ دفع راتب</button>
+        </div>
+      `;
       break;
   }
-}
-
-// مهام
-function renderTasks(project) {
-  const tasks = project.tasks || [];
-  let html = `<h3>المهام</h3>`;
-  if (tasks.length === 0) {
-    html += '<p>لا توجد مهام حالياً.</p>';
-  } else {
-    html += `
-      <table>
-        <thead>
-          <tr>
-            <th>المهمة</th>
-            <th>الحالة</th>
-            <th>تعديل</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tasks
-            .map(
-              (task, idx) => `
-            <tr>
-              <td>${task.name}</td>
-              <td>${task.status}</td>
-              <td><button onclick="editTask(${idx})">تعديل</button></td>
-            </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
-    `;
-  }
-  tabContent.innerHTML = html;
-}
-
-// موظفين
-function renderEmployees(project) {
-  const employees = project.employees || [];
-  let html = `<h3>الموظفين</h3>`;
-  if (employees.length === 0) {
-    html += '<p>لا يوجد موظفين حالياً.</p>';
-  } else {
-    html += `
-      <table>
-        <thead>
-          <tr>
-            <th>اسم الموظف</th>
-            <th>الوظيفة</th>
-            <th>تعديل</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${employees
-            .map(
-              (emp, idx) => `
-            <tr>
-              <td>${emp.name}</td>
-              <td>${emp.position}</td>
-              <td><button onclick="editEmployee(${idx})">تعديل</button></td>
-            </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
-    `;
-  }
-  tabContent.innerHTML = html;
-}
-
-// دوام
-function renderAttendance(project) {
-  const attendance = project.attendance || [];
-  let html = `<h3>سجل الدوام</h3>`;
-  if (attendance.length === 0) {
-    html += '<p>لا يوجد سجلات دوام حالياً.</p>';
-  } else {
-    html += `
-      <table>
-        <thead>
-          <tr>
-            <th>اسم الموظف</th>
-            <th>تاريخ</th>
-            <th>ساعات العمل</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${attendance
-            .map(
-              (att) => `
-            <tr>
-              <td>${att.employeeName}</td>
-              <td>${att.date}</td>
-              <td>${att.hours}</td>
-            </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
-    `;
-  }
-  tabContent.innerHTML = html;
-}
-
-// المحاسبة
-function renderFinance(project) {
-  const finance = project.finance || {
-    previousBalance: 0,
-    salaries: [],
-    purchases: [],
-    sales: [],
-    expenses: [],
-  };
-
-  let totalSalaries = finance.salaries.reduce((a, b) => a + (b.amount || 0), 0);
-  let totalPurchases = finance.purchases.reduce((a, b) => a + (b.amount || 0), 0);
-  let totalSales = finance.sales.reduce((a, b) => a + (b.amount || 0), 0);
-  let totalExpenses = finance.expenses.reduce((a, b) => a + (b.amount || 0), 0);
-
-  let currentBalance =
-    finance.previousBalance + totalSales - totalPurchases - totalSalaries - totalExpenses;
-
-  let html = `<h3>برنامج المحاسبة</h3>`;
-  html += `
-    <p><strong>الرصيد السابق:</strong> ${finance.previousBalance.toFixed(2)} د.ع</p>
-    <p><strong>إجمالي الرواتب:</strong> ${totalSalaries.toFixed(2)} د.ع</p>
-    <p><strong>إجمالي المشتريات:</strong> ${totalPurchases.toFixed(2)} د.ع</p>
-    <p><strong>إجمالي المبيعات:</strong> ${totalSales.toFixed(2)} د.ع</p>
-    <p><strong>إجمالي النفقات:</strong> ${totalExpenses.toFixed(2)} د.ع</p>
-    <p><strong>الرصيد الحالي:</strong> ${currentBalance.toFixed(2)} د.ع</p>
-  `;
 
   tabContent.innerHTML = html;
+  tabContent.classList.add("show");
 }
 
-// فتح المودال لإضافة مشروع جديد
-btnNewProject.addEventListener('click', () => {
-  openModal('إضافة مشروع جديد', [
-    { label: 'اسم المشروع', name: 'name', type: 'text', required: true },
-    { label: 'الوصف', name: 'description', type: 'text' },
-    { label: 'تاريخ البداية', name: 'startDate', type: 'date' },
-    { label: 'تاريخ النهاية', name: 'endDate', type: 'date' },
+// زر إضافة مشروع جديد
+btnNewProject.addEventListener("click", () => {
+  openModal("إضافة مشروع جديد", [
+    { label: "اسم المشروع", name: "name", type: "text", required: true },
+    { label: "الوصف", name: "description", type: "text" },
+    { label: "تاريخ البداية", name: "startDate", type: "date" },
+    { label: "تاريخ النهاية", name: "endDate", type: "date" },
     {
-      label: 'حالة المشروع',
-      name: 'status',
-      type: 'select',
-      options: ['نشط', 'مؤجل', 'مكتمل'],
+      label: "حالة المشروع",
+      name: "status",
+      type: "select",
+      options: ["نشط", "مؤجل", "مكتمل"],
       required: true,
     },
+    { label: "العملة الرئيسية", name: "currency", type: "text", required: true },
+    { label: "رمز العملة", name: "currencySymbol", type: "text", required: true },
+    { label: "الرصيد السابق", name: "previousBalance", type: "number" },
   ], (formData) => {
     const newProject = {
       name: formData.name,
@@ -285,11 +157,13 @@ btnNewProject.addEventListener('click', () => {
       startDate: formData.startDate,
       endDate: formData.endDate,
       status: formData.status,
+      currency: formData.currency,
+      currencySymbol: formData.currencySymbol,
       tasks: [],
       employees: [],
       attendance: [],
       finance: {
-        previousBalance: 0,
+        previousBalance: parseFloat(formData.previousBalance || 0),
         salaries: [],
         purchases: [],
         sales: [],
@@ -304,147 +178,48 @@ btnNewProject.addEventListener('click', () => {
   });
 });
 
-// أزرار الإضافة لكل قسم
-
-btnAddTask.addEventListener('click', () => {
-  openModal('إضافة مهمة جديدة', [
-    { label: 'اسم المهمة', name: 'name', type: 'text', required: true },
-    {
-      label: 'الحالة',
-      name: 'status',
-      type: 'select',
-      options: ['معلقة', 'قيد التنفيذ', 'مكتملة'],
-      required: true,
-    },
-  ], (formData) => {
-    projects[selectedProjectIndex].tasks.push({
-      name: formData.name,
-      status: formData.status,
-    });
-    saveProjects();
-    renderTabContent();
-    closeModal();
-  });
-});
-
-btnAddMember.addEventListener('click', () => {
-  openModal('إضافة موظف جديد', [
-    { label: 'اسم الموظف', name: 'name', type: 'text', required: true },
-    { label: 'الوظيفة', name: 'position', type: 'text' },
-  ], (formData) => {
-    projects[selectedProjectIndex].employees.push({
-      name: formData.name,
-      position: formData.position,
-    });
-    saveProjects();
-    renderTabContent();
-    closeModal();
-  });
-});
-
-btnAddAttendance.addEventListener('click', () => {
-  openModal('تسجيل دوام', [
-    {
-      label: 'اسم الموظف',
-      name: 'employeeName',
-      type: 'select',
-      options: projects[selectedProjectIndex].employees.map(e => e.name),
-      required: true,
-    },
-    { label: 'التاريخ', name: 'date', type: 'date', required: true },
-    { label: 'ساعات العمل', name: 'hours', type: 'number', min: 0, step: 0.1, required: true },
-  ], (formData) => {
-    projects[selectedProjectIndex].attendance.push({
-      employeeName: formData.employeeName,
-      date: formData.date,
-      hours: parseFloat(formData.hours),
-    });
-    saveProjects();
-    renderTabContent();
-    closeModal();
-  });
-});
-
-btnAddTransaction.addEventListener('click', () => {
-  openModal('إضافة معاملة مالية', [
-    {
-      label: 'نوع المعاملة',
-      name: 'type',
-      type: 'select',
-      options: ['راتب', 'مشتريات', 'مبيعات', 'نفقات'],
-      required: true,
-    },
-    { label: 'الوصف', name: 'description', type: 'text' },
-    { label: 'المبلغ', name: 'amount', type: 'number', min: 0, step: 0.01, required: true },
-  ], (formData) => {
-    const finance = projects[selectedProjectIndex].finance;
-    const amount = parseFloat(formData.amount);
-    switch (formData.type) {
-      case 'راتب':
-        finance.salaries.push({ description: formData.description, amount });
-        break;
-      case 'مشتريات':
-        finance.purchases.push({ description: formData.description, amount });
-        break;
-      case 'مبيعات':
-        finance.sales.push({ description: formData.description, amount });
-        break;
-      case 'نفقات':
-        finance.expenses.push({ description: formData.description, amount });
-        break;
-    }
-    saveProjects();
-    renderTabContent();
-    closeModal();
-  });
-});
-
-// فتح المودال مع بناء النموذج
+// مودال
 function openModal(title, fields, onSubmit) {
   modalTitle.textContent = title;
-  modalForm.innerHTML = '';
+  modalForm.innerHTML = "";
 
-  fields.forEach(field => {
-    const label = document.createElement('label');
+  fields.forEach((field) => {
+    const label = document.createElement("label");
     label.textContent = field.label;
-    label.setAttribute('for', field.name);
+    label.setAttribute("for", field.name);
     modalForm.appendChild(label);
 
     let input;
-    if (field.type === 'select') {
-      input = document.createElement('select');
-      input.name = field.name;
-      input.id = field.name;
-      if (field.required) input.required = true;
-
-      field.options.forEach(opt => {
-        const option = document.createElement('option');
+    if (field.type === "select") {
+      input = document.createElement("select");
+      field.options.forEach((opt) => {
+        const option = document.createElement("option");
         option.value = opt;
         option.textContent = opt;
         input.appendChild(option);
       });
     } else {
-      input = document.createElement('input');
-      input.type = field.type || 'text';
-      input.name = field.name;
-      input.id = field.name;
-      if (field.required) input.required = true;
-      if (field.min !== undefined) input.min = field.min;
-      if (field.step !== undefined) input.step = field.step;
+      input = document.createElement("input");
+      input.type = field.type;
     }
+
+    input.name = field.name;
+    input.id = field.name;
+    if (field.required) input.required = true;
     modalForm.appendChild(input);
   });
 
-  const submitBtn = document.createElement('button');
-  submitBtn.type = 'submit';
-  submitBtn.textContent = 'حفظ';
+  const submitBtn = document.createElement("button");
+  submitBtn.type = "submit";
+  submitBtn.classList.add("btn");
+  submitBtn.textContent = "حفظ";
   modalForm.appendChild(submitBtn);
 
-  modalOverlay.classList.remove('hidden');
-  modalForm.onsubmit = e => {
+  modalOverlay.classList.remove("hidden");
+  modalForm.onsubmit = (e) => {
     e.preventDefault();
     const formData = {};
-    fields.forEach(f => {
+    fields.forEach((f) => {
       formData[f.name] = modalForm.elements[f.name].value;
     });
     onSubmit(formData);
@@ -452,31 +227,51 @@ function openModal(title, fields, onSubmit) {
 }
 
 function closeModal() {
-  modalOverlay.classList.add('hidden');
-  modalForm.innerHTML = '';
+  modalOverlay.classList.add("hidden");
+  modalForm.innerHTML = "";
 }
-
-modalCancel.addEventListener('click', closeModal);
-
-window.addEventListener('click', (e) => {
-  if (e.target === modalOverlay) {
-    closeModal();
-  }
+modalCancel.addEventListener("click", closeModal);
+window.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
 });
 
-// وظائف التحرير (ممكن تضيف لاحقاً)
-window.editTask = function (idx) {
-  alert('ميزة تعديل المهمة قيد التطوير');
-};
-window.editEmployee = function (idx) {
-  alert('ميزة تعديل الموظف قيد التطوير');
-};
+// حفظ البيانات
+function saveProjects() {
+  localStorage.setItem("projects", JSON.stringify(projects));
+}
 
-// تهيئة التطبيق
+// إضافة حركة مالية
+function addTransaction(type) {
+  const labels = {
+    sales: "مبيع",
+    purchases: "شراء",
+    expenses: "نفقة",
+    salaries: "راتب",
+  };
+
+  openModal(`إضافة ${labels[type]}`, [
+    { label: "الوصف", name: "description", type: "text", required: true },
+    { label: "المبلغ", name: "amount", type: "number", required: true },
+    { label: "التاريخ", name: "date", type: "date", required: true },
+  ], (formData) => {
+    const entry = {
+      description: formData.description,
+      amount: parseFloat(formData.amount),
+      date: formData.date,
+    };
+    projects[selectedProjectIndex].finance[type].push(entry);
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+}
+
+// البحث
+projectSearch.addEventListener("input", renderProjects);
+
+// بدء
 function init() {
   renderProjects();
   showProjectDetails();
-  enableActionButtons(false);
 }
-
 init();
