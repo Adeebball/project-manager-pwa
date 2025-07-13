@@ -1,400 +1,541 @@
-const DB_NAME = 'SuperProjectManagerDB';
-const DB_VERSION = 3;
+// ========== إعداد قاعدة بيانات IndexedDB ==========
+const DB_NAME = 'ProjectManagerDB';
+const DB_VERSION = 1;
 let db;
+let currentProjectId = null;
 
-const state = {
-  activeTab: 'projects',
-  editingItem: null,
-};
-
-const tabs = ['projects', 'clients', 'employees', 'budget'];
-
-// فتح قاعدة البيانات وإنشاء objectStores إذا غير موجودة
+// فتح أو إنشاء قاعدة البيانات
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = (e) => {
+    request.onupgradeneeded = function (e) {
       db = e.target.result;
       if (!db.objectStoreNames.contains('projects')) {
-        db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+        const store = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('name', 'name', { unique: false });
       }
       if (!db.objectStoreNames.contains('tasks')) {
-        const tasksStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-        tasksStore.createIndex('projectId', 'projectId', { unique: false });
+        const store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('projectId', 'projectId', { unique: false });
       }
-      if (!db.objectStoreNames.contains('clients')) {
-        db.createObjectStore('clients', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('employees')) {
-        db.createObjectStore('employees', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('accounts')) {
-        const accountsStore = db.createObjectStore('accounts', { keyPath: 'id', autoIncrement: true });
-        accountsStore.createIndex('projectId', 'projectId', { unique: false });
-        accountsStore.createIndex('type', 'type', { unique: false });
-      }
-      if (!db.objectStoreNames.contains('budgets')) {
-        db.createObjectStore('budgets', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('members')) {
+        const store = db.createObjectStore('members', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('projectId', 'projectId', { unique: false });
       }
     };
 
-    request.onsuccess = (e) => {
+    request.onsuccess = function (e) {
       db = e.target.result;
       resolve();
     };
-    request.onerror = () => reject('فشل فتح قاعدة البيانات');
+
+    request.onerror = function (e) {
+      reject('خطأ بفتح قاعدة البيانات');
+    };
   });
 }
 
-// دوال CRUD عامة
-function getAll(storeName) {
+// ========================== الوظائف الأساسية =========================
+
+// إضافة مشروع جديد
+function addProject(project) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, 'readonly');
-    const store = tx.objectStore(storeName);
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(`خطأ في جلب البيانات من ${storeName}`);
+    const tx = db.transaction('projects', 'readwrite');
+    const store = tx.objectStore('projects');
+    const req = store.add(project);
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بإضافة المشروع');
   });
 }
 
-function addData(storeName, data) {
+// تحديث مشروع
+function updateProject(project) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const request = store.add(data);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(`خطأ في الإضافة إلى ${storeName}`);
+    const tx = db.transaction('projects', 'readwrite');
+    const store = tx.objectStore('projects');
+    const req = store.put(project);
+
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل بتحديث المشروع');
   });
 }
 
-function updateData(storeName, data) {
+// حذف مشروع مع كل المهام والأعضاء المرتبطين
+async function deleteProject(id) {
+  await deleteTasksByProject(id);
+  await deleteMembersByProject(id);
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const request = store.put(data);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(`خطأ في التحديث في ${storeName}`);
+    const tx = db.transaction('projects', 'readwrite');
+    const store = tx.objectStore('projects');
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل بحذف المشروع');
   });
 }
 
-function deleteData(storeName, id) {
+// جلب كل المشاريع
+function getAllProjects() {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(`خطأ في الحذف من ${storeName}`);
+    const tx = db.transaction('projects', 'readonly');
+    const store = tx.objectStore('projects');
+    const req = store.getAll();
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بجلب المشاريع');
   });
 }
 
-// واجهة تبويبات
-function switchTab(tab) {
-  if (!tabs.includes(tab)) return;
-  state.activeTab = tab;
-  tabs.forEach(t => {
-    const tabBtn = document.getElementById(`tab${capitalize(t)}`);
-    const tabContent = document.getElementById(`${t}Tab`);
-    if (t === tab) {
-      tabBtn.classList.add('active');
-      tabBtn.setAttribute('aria-selected', 'true');
-      tabContent.classList.add('active');
-    } else {
-      tabBtn.classList.remove('active');
-      tabBtn.setAttribute('aria-selected', 'false');
-      tabContent.classList.remove('active');
-    }
-  });
-  refreshCurrentTab();
-}
+// إضافة مهمة
+function addTask(task) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('tasks', 'readwrite');
+    const store = tx.objectStore('tasks');
+    const req = store.add(task);
 
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-// عرض البيانات حسب التبويب
-async function refreshCurrentTab() {
-  switch(state.activeTab) {
-    case 'projects':
-      await loadProjects();
-      break;
-    case 'clients':
-      await loadClients();
-      break;
-    case 'employees':
-      await loadEmployees();
-      break;
-    case 'budget':
-      await loadBudget();
-      break;
-  }
-}
-
-// مشاريع
-async function loadProjects() {
-  const projects = await getAll('projects');
-  const list = document.getElementById('projectsList');
-  list.innerHTML = '';
-  if (projects.length === 0) {
-    list.innerHTML = '<li>لا توجد مشاريع حتى الآن.</li>';
-    return;
-  }
-  projects.forEach(p => {
-    const li = document.createElement('li');
-    li.textContent = p.name;
-    li.tabIndex = 0;
-    li.addEventListener('click', () => openProjectDetails(p));
-    list.appendChild(li);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بإضافة المهمة');
   });
 }
 
-// فتح تفاصيل المشروع - الآن مؤقتاً مجرد alert
-function openProjectDetails(project) {
-  alert(`فتح مشروع: ${project.name}\n\nميزة إدارة المشروع لم تُفعّل بعد.`);
-  // يمكن تطوير صفحة داخلية أو نافذة منبثقة لإدارة المهام والحسابات لكل مشروع
-}
+// جلب المهام حسب المشروع
+function getTasksByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('tasks', 'readonly');
+    const store = tx.objectStore('tasks');
+    const index = store.index('projectId');
+    const req = index.getAll(projectId);
 
-// عملاء
-async function loadClients() {
-  const clients = await getAll('clients');
-  const list = document.getElementById('clientsList');
-  list.innerHTML = '';
-  if (clients.length === 0) {
-    list.innerHTML = '<li>لا يوجد عملاء حتى الآن.</li>';
-    return;
-  }
-  clients.forEach(c => {
-    const li = document.createElement('li');
-    li.textContent = `${c.name} - ${c.contact || ''}`;
-    li.tabIndex = 0;
-    list.appendChild(li);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بجلب المهام');
   });
 }
 
-// موظفين
-async function loadEmployees() {
-  const employees = await getAll('employees');
-  const list = document.getElementById('employeesList');
-  list.innerHTML = '';
-  if (employees.length === 0) {
-    list.innerHTML = '<li>لا يوجد موظفين حتى الآن.</li>';
-    return;
-  }
-  employees.forEach(emp => {
-    const li = document.createElement('li');
-    li.textContent = `${emp.name} - ${emp.position || ''}`;
-    li.tabIndex = 0;
-    list.appendChild(li);
+// حذف مهمة
+function deleteTask(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('tasks', 'readwrite');
+    const store = tx.objectStore('tasks');
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل بحذف المهمة');
   });
 }
 
-// الميزانية والحسابات
-async function loadBudget() {
-  const budgets = await getAll('budgets');
-  const accounts = await getAll('accounts');
-  const summaryDiv = document.getElementById('budgetSummary');
-  const accountsList = document.getElementById('accountsList');
+// حذف مهام مشروع كامل
+function deleteTasksByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('tasks', 'readwrite');
+    const store = tx.objectStore('tasks');
+    const index = store.index('projectId');
+    const req = index.openCursor(projectId);
 
-  if (budgets.length === 0) {
-    summaryDiv.textContent = 'لا توجد ميزانية محددة حالياً.';
-  } else {
-    const budget = budgets[budgets.length -1]; // آخر ميزانية
-    summaryDiv.innerHTML = `
-      <div>الميزانية: ${budget.amount.toFixed(2)} ريال</div>
-      <div>الوصف: ${budget.description || 'بدون وصف'}</div>
-    `;
-  }
+    req.onsuccess = function (e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        store.delete(cursor.primaryKey);
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    req.onerror = () => reject('فشل بحذف مهام المشروع');
+  });
+}
 
-  if (accounts.length === 0) {
-    accountsList.innerHTML = '<li>لا توجد حركات مالية مسجلة.</li>';
-  } else {
-    let totalIncome = 0;
-    let totalExpense = 0;
-    accountsList.innerHTML = '';
-    accounts.forEach(acc => {
-      const li = document.createElement('li');
-      li.textContent = `${acc.type === 'income' ? 'إيراد' : 'مصروف'}: ${acc.amount.toFixed(2)} - التصنيف: ${acc.category || 'عام'} - التاريخ: ${acc.date}`;
-      accountsList.appendChild(li);
-      if (acc.type === 'income') totalIncome += acc.amount;
-      else if (acc.type === 'expense') totalExpense += acc.amount;
+// إضافة عضو
+function addMember(member) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('members', 'readwrite');
+    const store = tx.objectStore('members');
+    const req = store.add(member);
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بإضافة العضو');
+  });
+}
+
+// جلب أعضاء حسب المشروع
+function getMembersByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('members', 'readonly');
+    const store = tx.objectStore('members');
+    const index = store.index('projectId');
+    const req = index.getAll(projectId);
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject('فشل بجلب الأعضاء');
+  });
+}
+
+// حذف عضو
+function deleteMember(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('members', 'readwrite');
+    const store = tx.objectStore('members');
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject('فشل بحذف العضو');
+  });
+}
+
+// حذف أعضاء مشروع كامل
+function deleteMembersByProject(projectId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('members', 'readwrite');
+    const store = tx.objectStore('members');
+    const index = store.index('projectId');
+    const req = index.openCursor(projectId);
+
+    req.onsuccess = function (e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        store.delete(cursor.primaryKey);
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    req.onerror = () => reject('فشل بحذف أعضاء المشروع');
+  });
+}
+
+// ================== DOM & تعامل الواجهة =================
+
+const projectsList = document.getElementById('projectsList');
+const btnNewProject = document.getElementById('btnNewProject');
+const searchInput = document.getElementById('searchInput');
+const projectDetails = document.getElementById('projectDetails');
+const projName = document.getElementById('projName');
+const projDesc = document.getElementById('projDesc');
+const projStart = document.getElementById('projStart');
+const projEnd = document.getElementById('projEnd');
+const projStatus = document.getElementById('projStatus');
+const projProgress = document.getElementById('projProgress');
+const btnCloseProject = document.getElementById('btnCloseProject');
+
+const tabs = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+const btnAddTask = document.getElementById('btnAddTask');
+const tasksList = document.getElementById('tasksList');
+
+const btnAddMember = document.getElementById('btnAddMember');
+const teamList = document.getElementById('teamList');
+
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalForm = document.getElementById('modalForm');
+const modalCancel = document.getElementById('modalCancel');
+const modalSubmit = document.getElementById('modalSubmit');
+
+let currentTab = 'overview';
+
+// تهيئة التطبيق
+async function init() {
+  await openDB();
+  renderProjectsList();
+  setupEventListeners();
+}
+
+function setupEventListeners() {
+  btnNewProject.addEventListener('click', () => {
+    openProjectModal('إضافة مشروع جديد', 'project');
+  });
+
+  searchInput.addEventListener('input', () => {
+    renderProjectsList(searchInput.value.trim());
+  });
+
+  btnCloseProject.addEventListener('click', () => {
+    currentProjectId = null;
+    projectDetails.classList.add('hidden');
+  });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      switchTab(tab.dataset.tab);
     });
-    const profit = totalIncome - totalExpense;
-    summaryDiv.innerHTML += `
-      <div>الإيرادات الكلية: ${totalIncome.toFixed(2)} ريال</div>
-      <div>النفقات الكلية: ${totalExpense.toFixed(2)} ريال</div>
-      <div>صافي الأرباح: ${profit.toFixed(2)} ريال</div>
-    `;
+  });
+
+  btnAddTask.addEventListener('click', () => {
+    openTaskModal('إضافة مهمة جديدة');
+  });
+
+  btnAddMember.addEventListener('click', () => {
+    openMemberModal('إضافة عضو جديد');
+  });
+
+  modalCancel.addEventListener('click', closeModal);
+
+  modalSubmit.addEventListener('click', onModalSubmit);
+}
+
+// تبديل التبويبات
+function switchTab(tabName) {
+  currentTab = tabName;
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  tabContents.forEach(tc => tc.classList.toggle('active', tc.id === tabName));
+  if (tabName === 'tasks' && currentProjectId) {
+    renderTasksList(currentProjectId);
+  } else if (tabName === 'team' && currentProjectId) {
+    renderTeamList(currentProjectId);
+  } else if (tabName === 'reports' && currentProjectId) {
+    renderReports(currentProjectId);
   }
 }
 
-// فتح النموذج (مودال) حسب نوع البيانات
-function openModal(title, fields, submitCallback, initialData = {}) {
-  const modal = document.getElementById('modalOverlay');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalForm = document.getElementById('modalForm');
+// عرض قائمة المشاريع
+async function renderProjectsList(filter = '') {
+  const projects = await getAllProjects();
+  projectsList.innerHTML = '';
+  let filtered = projects;
+  if (filter) {
+    const f = filter.toLowerCase();
+    filtered = projects.filter(p => p.name.toLowerCase().includes(f));
+  }
+
+  filtered.forEach(proj => {
+    const li = document.createElement('li');
+    li.textContent = proj.name;
+    li.title = proj.description || '';
+    li.onclick = () => openProject(proj.id);
+    projectsList.appendChild(li);
+  });
+}
+
+// فتح مشروع للعرض والتعديل
+async function openProject(id) {
+  currentProjectId = id;
+  const tx = db.transaction('projects', 'readonly');
+  const store = tx.objectStore('projects');
+  const req = store.get(id);
+
+  req.onsuccess = () => {
+    const proj = req.result;
+    projName.textContent = proj.name;
+    projDesc.textContent = proj.description || '-';
+    projStart.textContent = proj.startDate || '-';
+    projEnd.textContent = proj.endDate || '-';
+    projStatus.textContent = proj.status || 'نشط';
+    projProgress.textContent = proj.progress || 0;
+
+    projectDetails.classList.remove('hidden');
+    switchTab('overview');
+  };
+  req.onerror = () => alert('فشل بفتح المشروع');
+}
+
+// فتح نموذج إضافة / تعديل
+function openProjectModal(title, type, data = {}) {
   modalTitle.textContent = title;
   modalForm.innerHTML = '';
 
-  fields.forEach(field => {
-    let input;
-    if (field.type === 'textarea') {
-      input = document.createElement('textarea');
-      input.rows = field.rows || 3;
-    } else if (field.type === 'select') {
-      input = document.createElement('select');
-      field.options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt.value;
-        option.textContent = opt.label;
-        input.appendChild(option);
-      });
-    } else {
-      input = document.createElement('input');
-      input.type = field.type || 'text';
-    }
-    input.id = field.id;
-    input.name = field.id;
-    input.placeholder = field.placeholder || '';
-    input.required = !!field.required;
-    input.value = initialData[field.id] || '';
-    modalForm.appendChild(input);
-  });
-
-  modal.classList.remove('hidden');
-
-  // التعامل مع إلغاء النموذج
-  const cancelBtn = document.getElementById('modalCancel');
-  const submitBtn = document.getElementById('modalSubmit');
-
-  function closeModal() {
-    modal.classList.add('hidden');
-    modalForm.onsubmit = null;
-    cancelBtn.removeEventListener('click', cancelHandler);
-    submitBtn.removeEventListener('click', submitHandler);
+  if (type === 'project') {
+    modalForm.innerHTML = `
+      <label>اسم المشروع<span style="color:#ff6b6b;">*</span></label>
+      <input type="text" name="name" required value="${data.name || ''}" placeholder="ادخل اسم المشروع" />
+      <label>الوصف</label>
+      <textarea name="description" rows="3" placeholder="وصف مختصر">${data.description || ''}</textarea>
+      <label>تاريخ البداية</label>
+      <input type="date" name="startDate" value="${data.startDate || ''}" />
+      <label>تاريخ النهاية المتوقع</label>
+      <input type="date" name="endDate" value="${data.endDate || ''}" />
+      <label>الحالة</label>
+      <select name="status">
+        <option value="نشط" ${data.status === 'نشط' ? 'selected' : ''}>نشط</option>
+        <option value="مؤجل" ${data.status === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
+        <option value="مكتمل" ${data.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+      </select>
+      <label>نسبة الإنجاز (%)</label>
+      <input type="number" name="progress" min="0" max="100" value="${data.progress || 0}" />
+    `;
+  } else if (type === 'task') {
+    modalForm.innerHTML = `
+      <label>عنوان المهمة<span style="color:#ff6b6b;">*</span></label>
+      <input type="text" name="title" required placeholder="عنوان المهمة" />
+      <label>الوصف</label>
+      <textarea name="description" rows="3" placeholder="وصف المهمة"></textarea>
+      <label>الحالة</label>
+      <select name="status">
+        <option value="معلقة">معلقة</option>
+        <option value="قيد التنفيذ">قيد التنفيذ</option>
+        <option value="مكتملة">مكتملة</option>
+      </select>
+      <label>تاريخ الاستحقاق</label>
+      <input type="date" name="dueDate" />
+    `;
+  } else if (type === 'member') {
+    modalForm.innerHTML = `
+      <label>اسم العضو<span style="color:#ff6b6b;">*</span></label>
+      <input type="text" name="name" required placeholder="اسم العضو" />
+      <label>الدور</label>
+      <select name="role">
+        <option value="مدير">مدير</option>
+        <option value="عضو فريق">عضو فريق</option>
+        <option value="مشاهد">مشاهد</option>
+      </select>
+      <label>البريد الإلكتروني</label>
+      <input type="email" name="email" placeholder="email@example.com" />
+    `;
   }
 
-  function cancelHandler(e) {
-    e.preventDefault();
-    closeModal();
-  }
-  cancelBtn.addEventListener('click', cancelHandler);
-
-  function submitHandler(e) {
-    e.preventDefault();
-    const formData = {};
-    Array.from(modalForm.elements).forEach(el => {
-      if (el.name) formData[el.name] = el.value.trim();
-    });
-    submitCallback(formData);
-    closeModal();
-  }
-  submitBtn.addEventListener('click', submitHandler);
-
-  modalForm.onsubmit = (e) => {
-    e.preventDefault();
-    submitHandler(e);
-  };
+  modalOverlay.classList.remove('hidden');
+  modalForm.dataset.type = type;
+  modalForm.dataset.editingId = data.id || '';
 }
 
-// التعامل مع الأزرار لفتح النماذج حسب التبويب
-document.getElementById('btnAddProject').addEventListener('click', () => {
-  openModal('إنشاء مشروع جديد', [
-    { id: 'name', placeholder: 'اسم المشروع', required: true },
-    { id: 'description', placeholder: 'وصف المشروع', type: 'textarea' }
-  ], async (data) => {
-    if (!data.name) return alert('الاسم مطلوب');
-    await addData('projects', {
-      name: data.name,
-      description: data.description,
-      startDate: new Date().toISOString(),
-      status: 'active'
-    });
-    await refreshCurrentTab();
-  });
-});
+// إغلاق النموذج
+function closeModal() {
+  modalOverlay.classList.add('hidden');
+  modalForm.reset();
+  modalForm.dataset.type = '';
+  modalForm.dataset.editingId = '';
+}
 
-document.getElementById('btnAddClient').addEventListener('click', () => {
-  openModal('إضافة عميل جديد', [
-    { id: 'name', placeholder: 'اسم العميل', required: true },
-    { id: 'contact', placeholder: 'معلومات التواصل' },
-    { id: 'notes', placeholder: 'ملاحظات', type: 'textarea' }
-  ], async (data) => {
-    if (!data.name) return alert('الاسم مطلوب');
-    await addData('clients', {
-      name: data.name,
-      contact: data.contact,
-      notes: data.notes,
-    });
-    await refreshCurrentTab();
-  });
-});
+// عند حفظ النموذج
+async function onModalSubmit(e) {
+  e.preventDefault();
+  const type = modalForm.dataset.type;
+  const editingId = modalForm.dataset.editingId;
+  const formData = new FormData(modalForm);
 
-document.getElementById('btnAddEmployee').addEventListener('click', () => {
-  openModal('إضافة موظف جديد', [
-    { id: 'name', placeholder: 'اسم الموظف', required: true },
-    { id: 'position', placeholder: 'المسمى الوظيفي' },
-    { id: 'contact', placeholder: 'معلومات التواصل' },
-    { id: 'notes', placeholder: 'ملاحظات', type: 'textarea' }
-  ], async (data) => {
-    if (!data.name) return alert('الاسم مطلوب');
-    await addData('employees', {
-      name: data.name,
-      position: data.position,
-      contact: data.contact,
-      notes: data.notes,
-    });
-    await refreshCurrentTab();
-  });
-});
+  if (type === 'project') {
+    const projectData = {
+      name: formData.get('name').trim(),
+      description: formData.get('description').trim(),
+      startDate: formData.get('startDate'),
+      endDate: formData.get('endDate'),
+      status: formData.get('status'),
+      progress: parseInt(formData.get('progress')) || 0,
+    };
 
-document.getElementById('btnAddBudget').addEventListener('click', () => {
-  openModal('تعيين ميزانية جديدة', [
-    { id: 'amount', placeholder: 'المبلغ', required: true, type: 'number' },
-    { id: 'description', placeholder: 'وصف الميزانية', type: 'textarea' }
-  ], async (data) => {
-    if (!data.amount || isNaN(data.amount)) return alert('المبلغ مطلوب ورقمي');
-    await addData('budgets', {
-      amount: parseFloat(data.amount),
-      description: data.description,
-      date: new Date().toISOString(),
-    });
-    await refreshCurrentTab();
-  });
-});
+    if (!projectData.name) {
+      alert('اسم المشروع مطلوب');
+      return;
+    }
 
-document.getElementById('btnAddAccount').addEventListener('click', () => {
-  openModal('إضافة حركة مالية', [
-    { id: 'type', placeholder: 'نوع الحركة', required: true, type: 'select', options: [
-      { value: 'income', label: 'إيراد' },
-      { value: 'expense', label: 'مصروف' },
-    ]},
-    { id: 'amount', placeholder: 'المبلغ', required: true, type: 'number' },
-    { id: 'category', placeholder: 'التصنيف' },
-    { id: 'date', placeholder: 'التاريخ', required: true, type: 'date' },
-    { id: 'notes', placeholder: 'ملاحظات', type: 'textarea' },
-  ], async (data) => {
-    if (!data.amount || isNaN(data.amount)) return alert('المبلغ مطلوب ورقمي');
-    if (!data.date) return alert('التاريخ مطلوب');
-    await addData('accounts', {
-      type: data.type,
-      amount: parseFloat(data.amount),
-      category: data.category,
-      date: data.date,
-      notes: data.notes,
-    });
-    await refreshCurrentTab();
-  });
-});
+    if (editingId) {
+      projectData.id = Number(editingId);
+      await updateProject(projectData);
+    } else {
+      await addProject(projectData);
+    }
 
-// تغيير التبويب عند الضغط
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', e => {
-    switchTab(e.target.id.replace('tab', '').toLowerCase());
+    await renderProjectsList();
+    closeModal();
+
+  } else if (type === 'task') {
+    if (!currentProjectId) return alert('لا يوجد مشروع مفتوح');
+    const taskData = {
+      projectId: currentProjectId,
+      title: formData.get('title').trim(),
+      description: formData.get('description').trim(),
+      status: formData.get('status'),
+      dueDate: formData.get('dueDate'),
+    };
+
+    if (!taskData.title) {
+      alert('عنوان المهمة مطلوب');
+      return;
+    }
+
+    await addTask(taskData);
+    await renderTasksList(currentProjectId);
+    closeModal();
+
+  } else if (type === 'member') {
+    if (!currentProjectId) return alert('لا يوجد مشروع مفتوح');
+    const memberData = {
+      projectId: currentProjectId,
+      name: formData.get('name').trim(),
+      role: formData.get('role'),
+      email: formData.get('email').trim(),
+    };
+
+    if (!memberData.name) {
+      alert('اسم العضو مطلوب');
+      return;
+    }
+
+    await addMember(memberData);
+    await renderTeamList(currentProjectId);
+    closeModal();
+  }
+}
+
+// عرض قائمة المهام
+async function renderTasksList(projectId) {
+  const tasks = await getTasksByProject(projectId);
+  tasksList.innerHTML = '';
+  if (tasks.length === 0) {
+    tasksList.innerHTML = '<li>لا توجد مهام</li>';
+    return;
+  }
+
+  tasks.forEach(task => {
+    const li = document.createElement('li');
+    li.textContent = `${task.title} [${task.status}] - موعد: ${task.dueDate || '-'}`;
+
+    // زر حذف
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'حذف';
+    delBtn.className = 'btn secondary';
+    delBtn.style.marginLeft = '10px';
+    delBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm('هل أنت متأكد من حذف المهمة؟')) {
+        await deleteTask(task.id);
+        renderTasksList(projectId);
+      }
+    };
+
+    li.appendChild(delBtn);
+    tasksList.appendChild(li);
   });
-});
+}
+
+// عرض قائمة الأعضاء
+async function renderTeamList(projectId) {
+  const members = await getMembersByProject(projectId);
+  teamList.innerHTML = '';
+  if (members.length === 0) {
+    teamList.innerHTML = '<li>لا يوجد أعضاء</li>';
+    return;
+  }
+
+  members.forEach(member => {
+    const li = document.createElement('li');
+    li.textContent = `${member.name} (${member.role}) - ${member.email || '-'}`;
+
+    // زر حذف
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'حذف';
+    delBtn.className = 'btn secondary';
+    delBtn.style.marginLeft = '10px';
+    delBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm('هل أنت متأكد من حذف العضو؟')) {
+        await deleteMember(member.id);
+        renderTeamList(projectId);
+      }
+    };
+
+    li.appendChild(delBtn);
+    teamList.appendChild(li);
+  });
+}
+
+// عرض تقارير المشروع (مؤقت)
+function renderReports(projectId) {
+  const reportsDiv = document.getElementById('reportsContent');
+  reportsDiv.innerHTML = `
+    <p>تقارير قيد التطوير...</p>
+    <p>عدد المهام: غير متوفر حالياً</p>
+    <p>عدد الأعضاء: غير متوفر حالياً</p>
+  `;
+}
 
 // بدء التطبيق
-(async () => {
-  await openDB();
-  switchTab(state.activeTab);
-})();
+init();
