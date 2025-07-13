@@ -209,6 +209,16 @@ li.completed {
   align-items: center;
   z-index: 9999;
 }
+.close-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+}
 
 .modal {
   max-width: 460px;
