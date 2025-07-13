@@ -1,251 +1,235 @@
-/* --- ستايل ليكود غلاس شفاف --- */
+/* قاعدة لون الخط أبيض + خلفية داكنة */
 body {
-  margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  color: #e0e0e0;
+  margin: 0; padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #222, #000);
+  color: white !important;
   direction: rtl;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
 }
 
-.app-container {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+/* زجاجي ليكود */
+.glass {
+  background: rgba(255 255 255 / 0.05);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-radius: 15px;
+  border: 1px solid rgba(255 255 255 / 0.1);
+  box-shadow: 0 4px 30px rgba(0 0 0 / 0.2);
 }
 
 /* الشريط الجانبي */
 .sidebar {
   width: 280px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
   padding: 20px;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.sidebar h2 {
-  margin: 0 0 15px 0;
-  font-weight: 700;
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 0 8px rgba(0,0,0,0.5);
-}
-
-.btn {
-  padding: 10px 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  user-select: none;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.1);
-}
-
-.btn.primary {
-  background: rgba(255, 255, 255, 0.25);
-  color: #1e90ff;
-  backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 10px rgba(30, 144, 255, 0.7);
-}
-
-.btn.primary:hover {
-  background: rgba(30, 144, 255, 0.2);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(30, 144, 255, 0.9);
-}
-
-.btn.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ff6b6b;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-}
-
-.btn.secondary:hover {
-  background: rgba(255, 107, 107, 0.2);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
-}
-
-input[type="search"], input[type="text"], input[type="date"], input[type="number"], textarea, select {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: none;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  font-size: 14px;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-  outline: none;
-  transition: background-color 0.3s ease;
-}
-
-input[type="search"]:focus,
-input[type="text"]:focus,
-input[type="date"]:focus,
-input[type="number"]:focus,
-textarea:focus,
-select:focus {
-  background: rgba(255,255,255,0.3);
-  box-shadow: 0 0 8px rgba(30,144,255,0.6);
-}
-
-.list {
+/* قائمة المشاريع */
+#projectsList {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-grow: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 230px);
 }
 
-.list li {
-  padding: 10px 15px;
-  background: rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px;
-  border-radius: 15px;
+#projectsList li {
+  padding: 10px;
+  margin-bottom: 6px;
+  background: rgba(255 255 255 / 0.1);
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.25s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  user-select: none;
-  box-shadow: 0 0 6px rgba(0,0,0,0.15);
+  transition: background 0.3s;
 }
 
-.list li:hover {
-  background: rgba(30, 144, 255, 0.2);
+#projectsList li:hover {
+  background: rgba(255 255 255 / 0.2);
 }
 
+/* أزرار */
+button {
+  cursor: pointer;
+  padding: 10px 15px;
+  background: linear-gradient(145deg, #2c2c2c, #1a1a1a);
+  border: none;
+  border-radius: 25px;
+  color: white !important;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(145deg, #444, #222);
+}
+
+/* المحتوى الرئيسي */
 .main-content {
-  flex: 1;
-  padding: 20px 30px;
-  overflow-y: auto;
-  box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(25px);
-  border-radius: 0 0 0 20px;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-.hidden {
-  display: none !important;
-}
-
+/* ترويسة */
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
 header h1 {
-  margin: 0 0 20px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #00aaff;
-  text-shadow: 0 0 8px rgba(0, 170, 255, 0.7);
+  flex-grow: 1;
+  font-size: 1.8rem;
+  margin: 0;
 }
 
+/* تبويبات */
 .tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.tab-btn {
-  flex: 1;
-  padding: 10px 0;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
+.tab {
+  background: rgba(255 255 255 / 0.1);
   border: none;
-  color: #ccc;
+  border-radius: 20px;
+  padding: 10px 20px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  user-select: none;
+  transition: background 0.3s;
 }
 
-.tab-btn.active,
-.tab-btn:hover {
-  background: rgba(0, 170, 255, 0.9);
-  color: #fff;
-  box-shadow: 0 0 12px rgba(0, 170, 255, 0.9);
+.tab.active,
+.tab:hover {
+  background: rgba(255 255 255 / 0.25);
 }
 
+/* محتوى التبويب */
 .tab-content {
-  display: none;
-  animation: fadeIn 0.4s ease forwards;
+  background: rgba(255 255 255 / 0.05);
+  flex-grow: 1;
+  border-radius: 15px;
+  padding: 20px;
+  overflow-y: auto;
+  min-height: 400px;
 }
 
-.tab-content.active {
-  display: block;
-}
-
-.modal-overlay {
+/* المودال */
+#modalOverlay {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 999;
+}
+
+#modalOverlay.hidden {
+  display: none;
 }
 
 .modal {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  padding: 20px 30px;
-  border-radius: 25px;
+  background: rgba(255 255 255 / 0.1);
+  padding: 25px;
+  border-radius: 15px;
   width: 400px;
-  max-width: 90%;
-  box-shadow: 0 0 20px rgba(0, 170, 255, 0.6);
-  color: #fff;
-  font-size: 14px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  color: white !important;
 }
 
-.modal h2 {
+.modal h3 {
   margin-top: 0;
-  margin-bottom: 15px;
-  font-weight: 700;
-  text-align: center;
-  color: #00aaff;
-  text-shadow: 0 0 10px rgba(0,170,255,0.8);
 }
 
-.modal-buttons {
-  margin-top: 15px;
+.modal form {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
+.modal label {
+  font-weight: 600;
 }
 
-/* زر الحذف الصغير داخل القوائم */
-.list li button {
-  background: transparent;
+.modal input,
+.modal select {
+  background: rgba(255 255 255 / 0.15);
   border: none;
-  color: #ff6b6b;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0 6px;
-  font-size: 14px;
-  border-radius: 12px;
-  transition: color 0.3s ease;
+  border-radius: 8px;
+  padding: 10px;
+  color: white !important;
+  font-size: 1rem;
+  outline-offset: 2px;
 }
 
-.list li button:hover {
-  color: #fff;
-  text-shadow: 0 0 6px #ff6b6b;
+.modal button[type="submit"] {
+  background: #3b82f6;
+  border: none;
+  font-weight: 700;
+  transition: background 0.3s;
+}
+
+.modal button[type="submit"]:hover {
+  background: #2563eb;
+}
+
+#modalCancel {
+  margin-top: 15px;
+  width: 100%;
+  background: #ef4444;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+#modalCancel:hover {
+  background: #b91c1c;
+}
+
+/* جداول للعرض */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white !important;
+}
+
+th, td {
+  border: 1px solid rgba(255 255 255 / 0.2);
+  padding: 8px 12px;
+  text-align: center;
+}
+
+th {
+  background: rgba(255 255 255 / 0.1);
+}
+
+/* ألوان خاصة لأنواع المعاملات */
+.type-راتب {
+  color: #60a5fa; /* أزرق */
+}
+
+.type-مشتريات {
+  color: #fbbf24; /* أصفر */
+}
+
+.type-مبيعات {
+  color: #34d399; /* أخضر */
+}
+
+.type-نفقات {
+  color: #f87171; /* أحمر */
 }
