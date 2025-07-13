@@ -577,12 +577,14 @@ function closeModal() {
 }
 
 // --- حدث زر إلغاء داخل المودال ---
-modalCancel.addEventListener("click", closeModal);
+modalCancel.addEventListener("click", (e) => {
+  e.preventDefault();
+  closeModal();
+});
+
 
 // --- إغلاق المودال عند الضغط على خلفية المودال ---
-modalOverlay.addEventListener("click", (e) => {
-  if (e.target === modalOverlay) {
-    closeModal();
+
   }
 });
 
