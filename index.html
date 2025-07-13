@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مدير المشاريع</title>
+  <title>مدير المشاريع - PWA</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,26 +17,29 @@
         autocomplete="off"
       />
       <ul id="projectsList"></ul>
-      <button id="btnNewProject" class="glass-btn">+ مشروع جديد</button>
+      <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
     </aside>
 
     <main>
       <nav>
-        <button class="tab active glass-btn" data-tab="summary">ملخص</button>
-        <button class="tab glass-btn" data-tab="tasks">مهام</button>
-        <button class="tab glass-btn" data-tab="todo">To-Do</button>
-        <button class="tab glass-btn" data-tab="team">الفريق</button>
-        <button class="tab glass-btn" data-tab="notes">ملاحظات</button>
-        <button class="tab glass-btn" data-tab="finance">محاسبة</button>
+        <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
+        <button class="tab glass-btn" data-tab="tasks" type="button">مهام</button>
+        <button class="tab glass-btn" data-tab="todo" type="button">To-Do</button>
+        <button class="tab glass-btn" data-tab="team" type="button">الفريق</button>
+        <button class="tab glass-btn" data-tab="notes" type="button">ملاحظات</button>
+        <button class="tab glass-btn" data-tab="finance" type="button">المحاسبة</button>
       </nav>
-      <label for="projectBudget">ميزانية المشروع (اختياري)</label>
-<input id="projectBudget" name="projectBudget" type="number" min="0" step="0.01" />
 
-
-      <section id="tabContent" class="tab-content">
-        <p>يرجى اختيار مشروع لعرض التفاصيل.</p>
-      </section>
+      <section id="tabContent" class="tab-content glass-card"></section>
     </main>
+  </div>
+
+  <div id="modalOverlay" class="hidden">
+    <div class="modal">
+      <h2 id="modalTitle"></h2>
+      <form id="modalForm"></form>
+      <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
+    </div>
   </div>
 
   <script src="app.js"></script>
