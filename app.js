@@ -1,6 +1,6 @@
 // بيانات المشاريع مخزنة أوفلاين
 let projects = JSON.parse(localStorage.getItem("projects") || "[]");
-let currentProjectId = null;
+let currentProjectId = projects.length ? projects[0].id : null;
 
 const projectsListEl = document.getElementById("projectsList");
 const btnNewProject = document.getElementById("btnNewProject");
@@ -12,8 +12,16 @@ const modalTitle = document.getElementById("modalTitle");
 const modalForm = document.getElementById("modalForm");
 const modalCancel = document.getElementById("modalCancel");
 
+// زر لفتح مودال اختيار المشروع المنبثق
+const btnOpenProjectsModal = document.createElement("button");
+btnOpenProjectsModal.textContent = "اختر مشروع";
+btnOpenProjectsModal.className = "btn glass-btn";
+btnOpenProjectsModal.style.marginBottom = "10px";
+btnOpenProjectsModal.addEventListener("click", () => openModal("selectProject"));
+document.querySelector("aside").prepend(btnOpenProjectsModal);
+
 renderProjectsList();
-selectProject(projects.length ? projects[0].id : null);
+selectProject(currentProjectId);
 setupTabs();
 setupEventListeners();
 
@@ -75,7 +83,7 @@ function renderTabContent() {
       renderFinance(project);
       break;
     case "todo":
-      renderTodo(project);
+      renderToDo(project);
       break;
     case "notes":
       renderNotes(project);
@@ -108,10 +116,36 @@ function renderTasksList(project) {
   const tasksList = document.getElementById("tasksList");
   tasksList.innerHTML = "";
   if (!project.tasks) project.tasks = [];
-  project.tasks.forEach((task, i) => {
+  project.tasks.forEach((task, idx) => {
     const li = document.createElement("li");
-    li.textContent = `${task.title} - الحالة: ${task.status || "معلقة"}`;
+    li.innerHTML = `
+      <input type="checkbox" data-idx="${idx}" class="task-checkbox" ${
+      task.completed ? "checked" : ""
+    }/>
+      <span style="margin-left:10px;">${task.title} - الحالة: ${task.status || "معلقة"}</span>
+      <button data-idx="${idx}" class="btn glass-btn btn-delete-task" style="margin-left:10px; background:#b22222;">حذف</button>
+    `;
     tasksList.appendChild(li);
+  });
+
+  // حدث تغيير حالة المهمة (تشيك بوكس)
+  tasksList.querySelectorAll(".task-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", (e) => {
+      const idx = e.target.dataset.idx;
+      project.tasks[idx].completed = e.target.checked;
+      saveProjects();
+      renderTasksList(project);
+    });
+  });
+
+  // حدث حذف مهمة
+  tasksList.querySelectorAll(".btn-delete-task").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const idx = e.target.dataset.idx;
+      project.tasks.splice(idx, 1);
+      saveProjects();
+      renderTasksList(project);
+    });
   });
 }
 
@@ -131,31 +165,31 @@ function renderTeamList(project) {
   const teamList = document.getElementById("teamList");
   teamList.innerHTML = "";
   if (!project.team) project.team = [];
-  project.team.forEach((member) => {
+  project.team.forEach((member, idx) => {
     const li = document.createElement("li");
     li.textContent = `${member.name} - الدور: ${member.role}`;
+    li.innerHTML += `<button data-idx="${idx}" class="btn glass-btn btn-delete-member" style="margin-left:10px; background:#b22222;">حذف</button>`;
     teamList.appendChild(li);
+  });
+
+  teamList.querySelectorAll(".btn-delete-member").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const idx = e.target.dataset.idx;
+      project.team.splice(idx, 1);
+      saveProjects();
+      renderTeamList(project);
+    });
   });
 }
 
 function renderFinance(project) {
-  const defaultCurrencyRates = {
-    USD: 1,
-    EUR: 0.95,
-    GBP: 0.82,
-    JPY: 145.7,
-    SAR: 3.75,
-    AED: 3.67,
-    EGP: 30.9,
-  };
-
   tabContent.innerHTML = `
     <h3>المحاسبة</h3>
     <button id="btnAddTransaction" class="btn glass-btn">+ إضافة معاملة جديدة</button>
     <div style="margin-bottom:10px;">
       <label for="currencySelect">اختيار العملة:</label>
       <select id="currencySelect" style="margin-left:10px; padding:5px; border-radius:5px;">
-        ${Object.keys(defaultCurrencyRates)
+        ${Object.keys(project.currencyRates || defaultCurrencyRates)
           .map(
             (c) =>
               `<option value="${c}" ${
@@ -201,79 +235,74 @@ function renderTransactionsList(project) {
   document.getElementById("currentBalance").textContent = balance.toFixed(2);
 }
 
-function renderTodo(project) {
+const defaultCurrencyRates = {
+  USD: 1,
+  EUR: 0.95,
+  GBP: 0.82,
+  JPY: 145.7,
+  SAR: 3.75,
+  AED: 3.67,
+  EGP: 30.9,
+};
+
+function renderToDo(project) {
   tabContent.innerHTML = `
     <h3>قائمة To-Do</h3>
-    <form id="todoForm">
-      <input type="text" id="todoText" placeholder="أضف مهمة جديدة..." required />
-      <input type="date" id="todoDate" />
-      <button type="submit" class="btn glass-btn">إضافة</button>
-    </form>
+    <button id="btnAddToDo" class="btn glass-btn">+ إضافة مهمة To-Do</button>
     <ul id="todoList"></ul>
   `;
-  document.getElementById("todoForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const textInput = document.getElementById("todoText");
-    const dateInput = document.getElementById("todoDate");
-    const text = textInput.value.trim();
-    const dueDate = dateInput.value;
-    if (!text) return alert("يجب إدخال نص المهمة");
-    if (!project.todo) project.todo = [];
-    project.todo.push({ text, dueDate, done: false });
-    saveProjects();
-    renderTodo(project);
-  });
-  renderTodoList(project);
+  document.getElementById("btnAddToDo").addEventListener("click", () =>
+    openModal("todo")
+  );
+  renderToDoList(project);
 }
 
-function renderTodoList(project) {
-  const list = document.getElementById("todoList");
-  list.innerHTML = "";
+function renderToDoList(project) {
+  const todoList = document.getElementById("todoList");
+  todoList.innerHTML = "";
   if (!project.todo) project.todo = [];
-  project.todo.forEach((item, index) => {
+  project.todo.forEach((todo, idx) => {
     const li = document.createElement("li");
-    li.className = "todo-item";
     li.innerHTML = `
-      <label>
-        <input type="checkbox" data-index="${index}" ${item.done ? "checked" : ""} />
-        <span>${item.text} ${item.dueDate ? `(تاريخ: ${item.dueDate})` : ""}</span>
-      </label>
-      <button data-index="${index}" class="btn cancel-btn btn-delete-todo">حذف</button>
+      <input type="checkbox" data-idx="${idx}" class="todo-checkbox" ${
+      todo.completed ? "checked" : ""
+    }/>
+      <span style="margin-left:10px;">${todo.title} - ${
+      todo.dueDate ? "موعد: " + todo.dueDate : "بدون موعد"
+    }</span>
+      <button data-idx="${idx}" class="btn glass-btn btn-delete-todo" style="margin-left:10px; background:#b22222;">حذف</button>
     `;
-    li.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
-      project.todo[e.target.dataset.index].done = e.target.checked;
+    todoList.appendChild(li);
+  });
+
+  todoList.querySelectorAll(".todo-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", (e) => {
+      const idx = e.target.dataset.idx;
+      project.todo[idx].completed = e.target.checked;
       saveProjects();
-      renderTodoList(project);
+      renderToDoList(project);
     });
-    li.querySelector(".btn-delete-todo").addEventListener("click", (e) => {
-      const idx = e.target.dataset.index;
+  });
+
+  todoList.querySelectorAll(".btn-delete-todo").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const idx = e.target.dataset.idx;
       project.todo.splice(idx, 1);
       saveProjects();
-      renderTodoList(project);
+      renderToDoList(project);
     });
-    list.appendChild(li);
   });
 }
 
 function renderNotes(project) {
   tabContent.innerHTML = `
-    <h3>الملاحظات العامة</h3>
-    <form id="notesForm">
-      <input type="text" id="noteText" placeholder="أضف ملاحظة جديدة..." required />
-      <button type="submit" class="btn glass-btn">إضافة</button>
-    </form>
+    <h3>ملاحظات عامة (ملصقات)</h3>
+    <button id="btnAddNote" class="btn glass-btn">+ إضافة ملاحظة جديدة</button>
     <ul id="notesList"></ul>
   `;
-  document.getElementById("notesForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const textInput = document.getElementById("noteText");
-    const text = textInput.value.trim();
-    if (!text) return alert("يجب إدخال نص الملاحظة");
-    if (!project.notes) project.notes = [];
-    project.notes.push({ text });
-    saveProjects();
-    renderNotes(project);
-  });
+  document.getElementById("btnAddNote").addEventListener("click", () =>
+    openModal("note")
+  );
   renderNotesList(project);
 }
 
@@ -281,20 +310,20 @@ function renderNotesList(project) {
   const notesList = document.getElementById("notesList");
   notesList.innerHTML = "";
   if (!project.notes) project.notes = [];
-  project.notes.forEach((note, index) => {
+  project.notes.forEach((note, idx) => {
     const li = document.createElement("li");
-    li.className = "note-item";
-    li.innerHTML = `
-      <span>${note.text}</span>
-      <button data-index="${index}" class="btn cancel-btn btn-delete-note">حذف</button>
-    `;
-    li.querySelector(".btn-delete-note").addEventListener("click", (e) => {
-      const idx = e.target.dataset.index;
+    li.textContent = note.text;
+    li.innerHTML += `<button data-idx="${idx}" class="btn glass-btn btn-delete-note" style="margin-left:10px; background:#b22222;">حذف</button>`;
+    notesList.appendChild(li);
+  });
+
+  notesList.querySelectorAll(".btn-delete-note").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const idx = e.target.dataset.idx;
       project.notes.splice(idx, 1);
       saveProjects();
       renderNotesList(project);
     });
-    notesList.appendChild(li);
   });
 }
 
@@ -302,7 +331,27 @@ function openModal(type) {
   modalOverlay.classList.remove("hidden");
   modalForm.innerHTML = "";
 
+  const project = projects.find((p) => p.id === currentProjectId);
+
   switch (type) {
+    case "selectProject":
+      modalTitle.textContent = "اختر مشروعًا";
+      modalForm.innerHTML = projects.length
+        ? projects
+            .map(
+              (p) =>
+                `<button type="button" class="btn glass-btn select-project-btn" data-id="${p.id}">${p.name}</button>`
+            )
+            .join("")
+        : "<p>لا يوجد مشاريع حالياً</p>";
+      modalForm.querySelectorAll(".select-project-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selectProject(btn.dataset.id);
+          closeModal();
+        });
+      });
+      break;
+
     case "project":
       modalTitle.textContent = "إنشاء مشروع جديد";
       modalForm.innerHTML = `
@@ -340,6 +389,7 @@ function openModal(type) {
           todo: [],
           notes: [],
           selectedCurrency: "USD",
+          currencyRates: { ...defaultCurrencyRates },
         });
         saveProjects();
         renderProjectsList();
@@ -368,8 +418,7 @@ function openModal(type) {
         const title = modalForm.taskTitle.value.trim();
         if (!title) return alert("يجب إدخال عنوان المهمة");
         const status = modalForm.taskStatus.value;
-        const project = projects.find((p) => p.id === currentProjectId);
-        project.tasks.push({ title, status });
+        project.tasks.push({ title, status, completed: false });
         saveProjects();
         renderTasksList(project);
         closeModal();
@@ -377,6 +426,159 @@ function openModal(type) {
       break;
 
     case "member":
-      modalTitle
+      modalTitle.textContent = "إضافة عضو جديد للفريق";
+      modalForm.innerHTML = `
+        <label for="memberName">اسم العضو *</label>
+        <input id="memberName" name="memberName" type="text" required />
 
-  
+        <label for="memberRole">الدور</label>
+        <select id="memberRole" name="memberRole">
+          <option value="مدير">مدير</option>
+          <option value="عضو فريق">عضو فريق</option>
+          <option value="مشاهد">مشاهد</option>
+        </select>
+
+        <button type="submit" class="btn glass-btn">إضافة</button>
+      `;
+      modalForm.onsubmit = (e) => {
+        e.preventDefault();
+        const name = modalForm.memberName.value.trim();
+        if (!name) return alert("يجب إدخال اسم العضو");
+        const role = modalForm.memberRole.value;
+        project.team.push({ name, role });
+        saveProjects();
+        renderTeamList(project);
+        closeModal();
+      };
+      break;
+
+    case "transaction":
+      modalTitle.textContent = "إضافة معاملة مالية جديدة";
+      modalForm.innerHTML = `
+        <label for="transactionType">نوع المعاملة *</label>
+        <select id="transactionType" name="transactionType" required>
+          <option value="">اختر النوع</option>
+          <option value="إيراد">إيراد</option>
+          <option value="مصاريف">مصاريف</option>
+        </select>
+
+        <label for="transactionDesc">الوصف</label>
+        <input id="transactionDesc" name="transactionDesc" type="text" />
+
+        <label for="transactionAmount">المبلغ *</label>
+        <input id="transactionAmount" name="transactionAmount" type="number" step="0.01" min="0" required />
+
+        <label for="transactionCurrency">العملة</label>
+        <select id="transactionCurrency" name="transactionCurrency">
+          ${Object.keys(defaultCurrencyRates)
+            .map(
+              (c) =>
+                `<option value="${c}" ${
+                  c === (project.selectedCurrency || "USD") ? "selected" : ""
+                }>${c}</option>`
+            )
+            .join("")}
+        </select>
+
+        <label for="exchangeRate">سعر التحويل إلى العملة المختارة *</label>
+        <input id="exchangeRate" name="exchangeRate" type="number" step="0.0001" min="0" value="1" required />
+
+        <button type="submit" class="btn glass-btn">إضافة</button>
+      `;
+      modalForm.onsubmit = (e) => {
+        e.preventDefault();
+        const type = modalForm.transactionType.value;
+        if (!type) return alert("يجب اختيار نوع المعاملة");
+        const description = modalForm.transactionDesc.value.trim();
+        const amount = parseFloat(modalForm.transactionAmount.value);
+        if (isNaN(amount) || amount <= 0)
+          return alert("يجب إدخال مبلغ صحيح أكبر من صفر");
+        const currency = modalForm.transactionCurrency.value;
+        const exchangeRate = parseFloat(modalForm.exchangeRate.value);
+        if (isNaN(exchangeRate) || exchangeRate <= 0)
+          return alert("يجب إدخال سعر تحويل صحيح");
+        project.transactions.push({
+          type,
+          description,
+          amount,
+          currency,
+          exchangeRate,
+        });
+        saveProjects();
+        renderFinance(project);
+        closeModal();
+      };
+      break;
+
+    case "todo":
+      modalTitle.textContent = "إضافة مهمة To-Do جديدة";
+      modalForm.innerHTML = `
+        <label for="todoTitle">عنوان المهمة *</label>
+        <input id="todoTitle" name="todoTitle" type="text" required />
+
+        <label for="todoDueDate">تاريخ الاستحقاق</label>
+        <input id="todoDueDate" name="todoDueDate" type="date" />
+
+        <button type="submit" class="btn glass-btn">إضافة</button>
+      `;
+      modalForm.onsubmit = (e) => {
+        e.preventDefault();
+        const title = modalForm.todoTitle.value.trim();
+        if (!title) return alert("يجب إدخال عنوان المهمة");
+        const dueDate = modalForm.todoDueDate.value;
+        project.todo.push({ title, dueDate, completed: false });
+        saveProjects();
+        renderToDoList(project);
+        closeModal();
+      };
+      break;
+
+    case "note":
+      modalTitle.textContent = "إضافة ملاحظة جديدة";
+      modalForm.innerHTML = `
+        <label for="noteText">النص *</label>
+        <textarea id="noteText" name="noteText" required rows="4" style="width:100%; border-radius:8px; background:rgba(255 255 255 / 0.15); color:white; border:none; padding:8px;"></textarea>
+
+        <button type="submit" class="btn glass-btn">إضافة</button>
+      `;
+      modalForm.onsubmit = (e) => {
+        e.preventDefault();
+        const text = modalForm.noteText.value.trim();
+        if (!text) return alert("يجب إدخال نص الملاحظة");
+        project.notes.push({ text });
+        saveProjects();
+        renderNotesList(project);
+        closeModal();
+      };
+      break;
+
+    default:
+      modalTitle.textContent = "";
+      modalForm.innerHTML = "<p>نوع غير معروف</p>";
+      break;
+  }
+}
+
+function closeModal() {
+  modalOverlay.classList.add("hidden");
+  modalForm.innerHTML = "";
+  modalTitle.textContent = "";
+}
+
+modalCancel.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+
+function saveProjects() {
+  localStorage.setItem("projects", JSON.stringify(projects));
+}
+
+// البحث في المشاريع
+projectSearchInput.addEventListener("input", (e) => {
+  renderProjectsList(e.target.value);
+});
+
+// زر إضافة مشروع جديد
+btnNewProject.addEventListener("click", () => openModal("project"));
+
