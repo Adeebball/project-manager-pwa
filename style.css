@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(to bottom, #2e2e2e, #1a1a1a);
   color: #fff;
   display: flex;
@@ -10,16 +10,14 @@ body {
 #app {
   display: flex;
   width: 100%;
-  min-height: 100vh;
 }
 
 aside {
-  width: 280px;
+  width: 250px;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   padding: 20px;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 main {
@@ -27,7 +25,6 @@ main {
   display: flex;
   flex-direction: column;
   padding: 20px;
-  box-sizing: border-box;
 }
 
 nav {
@@ -42,15 +39,10 @@ nav {
   margin: 0 5px;
   border-radius: 20px;
   cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.tab:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .tab.active {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
   font-weight: bold;
 }
 
@@ -62,11 +54,6 @@ nav {
   margin-top: 10px;
   border-radius: 20px;
   cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.glass-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
 }
 
 .tab-content {
@@ -76,30 +63,21 @@ nav {
   backdrop-filter: blur(10px);
   flex: 1;
   overflow-y: auto;
-  min-height: 350px;
-  box-sizing: border-box;
 }
 
 ul {
   list-style: none;
   padding: 0;
-  margin: 0;
 }
 
 #projectsList li {
-  padding: 10px;
+  padding: 8px;
   cursor: pointer;
   border-radius: 10px;
-  margin-bottom: 6px;
-  transition: background 0.3s ease;
-}
-
-#projectsList li:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 #projectsList li.active {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   font-weight: bold;
 }
 
@@ -109,19 +87,11 @@ input[type="number"],
 textarea,
 select {
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px;
   border-radius: 10px;
   border: none;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 14px;
-  box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #ccc;
 }
 
 .list {
@@ -135,8 +105,7 @@ textarea::placeholder {
   background: rgba(255, 255, 255, 0.07);
   padding: 10px;
   border-radius: 10px;
-  margin-bottom: 10px;
-  word-break: break-word;
+  margin-bottom: 8px;
 }
 
 .list-item.completed label {
@@ -151,72 +120,11 @@ textarea::placeholder {
   border-radius: 10px;
   color: white;
   cursor: pointer;
-  margin-left: 10px;
-  transition: background 0.3s ease;
-}
-
-.list-action-btn:hover {
-  background: #e03e3e;
+  margin-right: 10px;
 }
 
 .list-item label {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
-}
-
-/* المودال */
-
-#modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-#modalOverlay.hidden {
-  display: none;
-}
-
-.modal {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  padding: 25px 30px;
-  border-radius: 25px;
-  width: 400px;
-  max-width: 90vw;
-  box-sizing: border-box;
-  color: white;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-}
-
-.modal h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-weight: 600;
-}
-
-#modalForm button[type="submit"] {
-  margin-top: 15px;
-}
-
-.btn.cancel-btn {
-  background: #777;
-  margin-top: 10px;
-  width: 100%;
-  border-radius: 25px;
-  padding: 10px;
-  font-weight: 600;
-  transition: background 0.3s ease;
-}
-
-.btn.cancel-btn:hover {
-  background: #555;
 }
