@@ -1,17 +1,18 @@
-// بيانات المشاريع مخزنة في localStorage
+// بيانات المشاريع مخزنة أوفلاين
 let projects = JSON.parse(localStorage.getItem("projects") || "[]");
 let currentProjectId = projects.length ? projects[0].id : null;
 
 // العناصر الرئيسية
 const projectsListEl = document.getElementById("projectsList");
 const btnNewProject = document.getElementById("btnNewProject");
+const btnExportProjects = document.getElementById("btnExportProjects");
+const btnImportProjects = document.getElementById("btnImportProjects");
+const btnClearProjects = document.getElementById("btnClearProjects");
+const btnDeleteProject = document.getElementById("btnDeleteProject");
+const fileInput = document.getElementById("fileInput");
 const projectSearchInput = document.getElementById("projectSearch");
 const tabButtons = document.querySelectorAll(".tab");
 const tabContent = document.getElementById("tabContent");
-const modalOverlay = document.getElementById("modalOverlay");
-const modalTitle = document.getElementById("modalTitle");
-const modalForm = document.getElementById("modalForm");
-const modalCancel = document.getElementById("modalCancel");
 
 // حفظ المشاريع في localStorage
 function saveProjects() {
@@ -102,21 +103,13 @@ function renderTabContent() {
 }
 
 // -- تبويب الملخص --
-
-// أضفت وصف + خيرات + فريق + ميزانية بشكل مبسط في الملخص
 function renderSummary(project) {
-  const budget = project.budget ? project.budget.toLocaleString() + " USD" : "-";
-  const teamCount = project.team ? project.team.length : 0;
-  const resources = project.resources || "-";
-
   tabContent.innerHTML = `
     <h3>ملخص المشروع: ${project.name}</h3>
     <p><strong>الوصف:</strong> ${project.description || "لا يوجد وصف"}</p>
     <p><strong>تاريخ البداية:</strong> ${project.startDate || "-"}</p>
     <p><strong>تاريخ النهاية المتوقع:</strong> ${project.endDate || "-"}</p>
-    <p><strong>الموارد / الخيرات:</strong> ${resources}</p>
-    <p><strong>عدد أعضاء الفريق:</strong> ${teamCount}</p>
-    <p><strong>الميزانية:</strong> ${budget}</p>
+    <p><strong>ميزانية المشروع:</strong> ${project.budget ? project.budget + " USD" : "-"}</p>
   `;
 }
 
@@ -305,266 +298,343 @@ const defaultCurrencyRates = {
 
 function renderFinance(project) {
   tabContent.innerHTML = `
-    <h3>المحاسبة المالية</h3>
-    <p><strong>الميزانية الكلية:</strong> ${project.budget ? project.budget.toLocaleString() + " USD" : "-"}</p>
-    <button id="btnAddFinance" class="btn glass-btn">+ إضافة عملية مالية</button>
-    <ul id="financeList" class="list"></ul>
+    <h3>المحاسبة</h3>
+    <button id="btnAddTransaction" class="btn glass-btn">+ إضافة معاملة جديدة</button>
+    <div style="margin-bottom:10px;">
+      <label for="currencySelect">اختيار العملة:</label>
+      <select id="currencySelect" style="margin-left:10px; padding:5px; border-radius:5px;">
+        ${Object.keys(project.currencyRates || defaultCurrencyRates)
+          .map(
+            (c) =>
+              `<option value="${c}" ${
+                c === (project.selectedCurrency || "USD") ? "selected" : ""
+              }>${c}</option>`
+          )
+          .join("")}
+      </select>
+    </div>
+    <ul id="transactionsList" class="list"></ul>
+    <p>الرصيد الحالي: <span id="currentBalance">0</span> ${project.selectedCurrency || "USD"}</p>
   `;
 
-  document.getElementById("btnAddFinance").addEventListener("click", () =>
-    openModal("finance")
-  );
+  document
+    .getElementById("btnAddTransaction")
+    .addEventListener("click", () => openModal("transaction"));
 
-  renderFinanceList(project);
+  document.getElementById("currencySelect").addEventListener("change", (e) => {
+    project.selectedCurrency = e.target.value;
+    saveProjects();
+    renderFinance(project);
+  });
+
+  renderTransactionsList(project);
 }
 
-function renderFinanceList(project) {
-  const financeList = document.getElementById("financeList");
-  financeList.innerHTML = "";
-  project.finance = project.finance || [];
+function renderTransactionsList(project) {
+  const list = document.getElementById("transactionsList");
+  list.innerHTML = "";
+  project.transactions = project.transactions || [];
+  let balance = 0;
 
-  project.finance.forEach((entry, index) => {
+  project.transactions.forEach((t, index) => {
+    let rate = parseFloat(t.exchangeRate);
+    if (!rate || rate <= 0) rate = 1;
+    const amountInSelected = t.amount * rate;
+    balance += t.type === "إيراد" ? amountInSelected : -amountInSelected;
+
     const li = document.createElement("li");
     li.classList.add("list-item");
-    li.innerHTML = `
-      <span>${entry.type} - المبلغ: ${entry.amount.toLocaleString()} ${entry.currency} - التاريخ: ${entry.date}</span>
-      <button class="list-action-btn" aria-label="حذف عملية مالية">حذف</button>
-    `;
+    li.textContent = `[${t.type}] ${t.description || ""} : ${amountInSelected.toFixed(
+      2
+    )} ${project.selectedCurrency || "USD"}`;
 
-    li.querySelector("button").addEventListener("click", () => {
-      if (confirm("هل أنت متأكد من حذف هذه العملية؟")) {
-        project.finance.splice(index, 1);
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "حذف";
+    delBtn.classList.add("list-action-btn");
+    delBtn.addEventListener("click", () => {
+      if (confirm("هل أنت متأكد من حذف هذه المعاملة؟")) {
+        project.transactions.splice(index, 1);
         saveProjects();
-        renderFinanceList(project);
+        renderTransactionsList(project);
       }
     });
 
-    financeList.appendChild(li);
+    li.appendChild(delBtn);
+    list.appendChild(li);
   });
+
+  document.getElementById("currentBalance").textContent = balance.toFixed(2);
 }
 
-// -- فتح المودال لإضافة عناصر --
+// --- فتح مودال للإضافة ---
 function openModal(type) {
-  modalForm.innerHTML = "";
-  modalTitle.textContent = "";
-
-  const project = projects.find((p) => p.id === currentProjectId);
-
-  if (!project) return;
-
+  let html = "";
   switch (type) {
-    case "project":
-      modalTitle.textContent = "إضافة مشروع جديد";
-      modalForm.innerHTML = `
-        <label>اسم المشروع:</label>
-        <input type="text" id="inputName" required />
-        <label>الوصف:</label>
-        <textarea id="inputDescription" rows="3"></textarea>
-        <label>تاريخ البداية:</label>
-        <input type="date" id="inputStartDate" />
-        <label>تاريخ النهاية المتوقع:</label>
-        <input type="date" id="inputEndDate" />
-        <label>الموارد / الخيرات:</label>
-        <input type="text" id="inputResources" placeholder="مثل: معدات، موظفين،..." />
-        <label>الميزانية (USD):</label>
-        <input type="number" id="inputBudget" min="0" step="0.01" />
-        <button type="submit" class="btn glass-btn">حفظ</button>
-      `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const name = document.getElementById("inputName").value.trim();
-        if (!name) return alert("الرجاء إدخال اسم المشروع.");
-        const newProject = {
-          id: generateId(),
-          name,
-          description: document.getElementById("inputDescription").value.trim(),
-          startDate: document.getElementById("inputStartDate").value || null,
-          endDate: document.getElementById("inputEndDate").value || null,
-          resources: document.getElementById("inputResources").value.trim(),
-          budget: parseFloat(document.getElementById("inputBudget").value) || 0,
-          tasks: [],
-          todo: [],
-          team: [],
-          notes: [],
-          finance: [],
-        };
-        projects.push(newProject);
-        saveProjects();
-        currentProjectId = newProject.id;
-        closeModal();
-        renderProjectsList();
-        updateActiveProjectInList();
-        renderTabContent();
-      };
-      break;
-
     case "task":
-      modalTitle.textContent = "إضافة مهمة جديدة";
-      modalForm.innerHTML = `
-        <label>عنوان المهمة:</label>
-        <input type="text" id="inputTaskTitle" required />
-        <label>الحالة:</label>
+      html = `
+        <h3>إضافة مهمة جديدة</h3>
+        <input type="text" id="inputTaskTitle" placeholder="عنوان المهمة" />
         <select id="inputTaskStatus">
           <option value="معلقة">معلقة</option>
-          <option value="جارية">جارية</option>
+          <option value="قيد التنفيذ">قيد التنفيذ</option>
           <option value="مكتملة">مكتملة</option>
         </select>
-        <button type="submit" class="btn glass-btn">حفظ</button>
+        <button id="btnSaveTask" class="btn glass-btn">حفظ المهمة</button>
       `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const title = document.getElementById("inputTaskTitle").value.trim();
-        if (!title) return alert("الرجاء إدخال عنوان المهمة.");
-        project.tasks.push({
-          title,
-          status: document.getElementById("inputTaskStatus").value,
-        });
-        saveProjects();
-        closeModal();
-        renderTasks(project);
-      };
       break;
-
     case "todo":
-      modalTitle.textContent = "إضافة عنصر To-Do";
-      modalForm.innerHTML = `
-        <label>العنوان:</label>
-        <input type="text" id="inputToDoTitle" required />
-        <label>تاريخ الاستحقاق:</label>
+      html = `
+        <h3>إضافة عنصر To-Do جديد</h3>
+        <input type="text" id="inputToDoTitle" placeholder="العنوان" />
         <input type="date" id="inputToDoDueDate" />
-        <button type="submit" class="btn glass-btn">حفظ</button>
+        <button id="btnSaveToDo" class="btn glass-btn">حفظ</button>
       `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const title = document.getElementById("inputToDoTitle").value.trim();
-        if (!title) return alert("الرجاء إدخال العنوان.");
-        project.todo.push({
-          title,
-          dueDate: document.getElementById("inputToDoDueDate").value || null,
-          completed: false,
-        });
-        saveProjects();
-        closeModal();
-        renderToDo(project);
-      };
       break;
-
     case "member":
-      modalTitle.textContent = "إضافة عضو فريق جديد";
-      modalForm.innerHTML = `
-        <label>اسم العضو:</label>
-        <input type="text" id="inputMemberName" required />
-        <label>الدور الوظيفي:</label>
-        <input type="text" id="inputMemberRole" />
-        <button type="submit" class="btn glass-btn">حفظ</button>
+      html = `
+        <h3>إضافة عضو فريق جديد</h3>
+        <input type="text" id="inputMemberName" placeholder="الاسم" />
+        <input type="text" id="inputMemberRole" placeholder="الدور" />
+        <button id="btnSaveMember" class="btn glass-btn">حفظ العضو</button>
       `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const name = document.getElementById("inputMemberName").value.trim();
-        if (!name) return alert("الرجاء إدخال اسم العضو.");
-        project.team.push({
-          name,
-          role: document.getElementById("inputMemberRole").value.trim(),
-        });
-        saveProjects();
-        closeModal();
-        renderTeam(project);
-      };
       break;
-
     case "note":
-      modalTitle.textContent = "إضافة ملاحظة جديدة";
-      modalForm.innerHTML = `
-        <label>الملاحظة:</label>
-        <textarea id="inputNoteText" rows="3" required></textarea>
-        <button type="submit" class="btn glass-btn">حفظ</button>
+      html = `
+        <h3>إضافة ملاحظة جديدة</h3>
+        <textarea id="inputNoteText" placeholder="النص"></textarea>
+        <button id="btnSaveNote" class="btn glass-btn">حفظ الملاحظة</button>
       `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const text = document.getElementById("inputNoteText").value.trim();
-        if (!text) return alert("الرجاء إدخال نص الملاحظة.");
-        project.notes.push({ text });
-        saveProjects();
-        closeModal();
-        renderNotes(project);
-      };
       break;
-
-    case "finance":
-      modalTitle.textContent = "إضافة عملية مالية";
-      modalForm.innerHTML = `
-        <label>نوع العملية:</label>
-        <select id="inputFinanceType" required>
-          <option value="" disabled selected>اختر نوع العملية</option>
-          <option value="دخل">دخل</option>
+    case "transaction":
+      html = `
+        <h3>إضافة معاملة جديدة</h3>
+        <select id="inputTransactionType">
+          <option value="إيراد">إيراد</option>
           <option value="مصروف">مصروف</option>
         </select>
-        <label>المبلغ:</label>
-        <input type="number" id="inputFinanceAmount" min="0" step="0.01" required />
-        <label>العملة:</label>
-        <select id="inputFinanceCurrency" required>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="GBP">GBP</option>
-          <option value="JPY">JPY</option>
-          <option value="SAR">SAR</option>
-          <option value="AED">AED</option>
-          <option value="EGP">EGP</option>
-        </select>
-        <label>التاريخ:</label>
-        <input type="date" id="inputFinanceDate" required />
-        <button type="submit" class="btn glass-btn">حفظ</button>
+        <input type="number" id="inputTransactionAmount" placeholder="المبلغ" />
+        <input type="text" id="inputTransactionDescription" placeholder="الوصف" />
+        <input type="number" id="inputTransactionExchangeRate" placeholder="سعر الصرف" value="1" step="0.0001" />
+        <button id="btnSaveTransaction" class="btn glass-btn">حفظ المعاملة</button>
       `;
-      modalForm.onsubmit = (e) => {
-        e.preventDefault();
-        const type = document.getElementById("inputFinanceType").value;
-        const amount = parseFloat(document.getElementById("inputFinanceAmount").value);
-        const currency = document.getElementById("inputFinanceCurrency").value;
-        const date = document.getElementById("inputFinanceDate").value;
-
-        if (!type) return alert("اختر نوع العملية.");
-        if (!amount || amount <= 0) return alert("أدخل مبلغًا صالحًا.");
-        if (!date) return alert("حدد التاريخ.");
-
-        project.finance.push({ type, amount, currency, date });
-        saveProjects();
-        closeModal();
-        renderFinance(project);
-      };
       break;
   }
 
-  modalOverlay.classList.remove("hidden");
+  tabContent.innerHTML = `<div id="modal" class="modal">${html}</div>`;
+
+  // إضافة مستمع حفظ لكل مودال
+  switch (type) {
+    case "task":
+      document
+        .getElementById("btnSaveTask")
+        .addEventListener("click", () => saveTask());
+      break;
+    case "todo":
+      document
+        .getElementById("btnSaveToDo")
+        .addEventListener("click", () => saveToDo());
+      break;
+    case "member":
+      document
+        .getElementById("btnSaveMember")
+        .addEventListener("click", () => saveMember());
+      break;
+    case "note":
+      document
+        .getElementById("btnSaveNote")
+        .addEventListener("click", () => saveNote());
+      break;
+    case "transaction":
+      document
+        .getElementById("btnSaveTransaction")
+        .addEventListener("click", () => saveTransaction());
+      break;
+  }
 }
 
-function closeModal() {
-  modalOverlay.classList.add("hidden");
-  modalForm.innerHTML = "";
+// -- حفظ عناصر جديدة --
+function saveTask() {
+  const title = document.getElementById("inputTaskTitle").value.trim();
+  const status = document.getElementById("inputTaskStatus").value;
+  if (!title) return alert("الرجاء إدخال عنوان المهمة.");
+
+  const project = projects.find((p) => p.id === currentProjectId);
+  project.tasks = project.tasks || [];
+  project.tasks.push({ title, status });
+  saveProjects();
+  renderTabContent();
 }
 
-// توليد معرف فريد عشوائي
-function generateId() {
-  return Math.random().toString(36).substring(2, 10);
+function saveToDo() {
+  const title = document.getElementById("inputToDoTitle").value.trim();
+  const dueDate = document.getElementById("inputToDoDueDate").value;
+  if (!title) return alert("الرجاء إدخال عنوان To-Do.");
+
+  const project = projects.find((p) => p.id === currentProjectId);
+  project.todo = project.todo || [];
+  project.todo.push({ title, dueDate, completed: false });
+  saveProjects();
+  renderTabContent();
 }
 
-// أحداث
-btnNewProject.addEventListener("click", () => openModal("project"));
+function saveMember() {
+  const name = document.getElementById("inputMemberName").value.trim();
+  const role = document.getElementById("inputMemberRole").value.trim();
+  if (!name) return alert("الرجاء إدخال اسم العضو.");
 
-modalCancel.addEventListener("click", closeModal);
+  const project = projects.find((p) => p.id === currentProjectId);
+  project.team = project.team || [];
+  project.team.push({ name, role });
+  saveProjects();
+  renderTabContent();
+}
 
-modalOverlay.addEventListener("click", (e) => {
-  if (e.target === modalOverlay) closeModal();
+function saveNote() {
+  const text = document.getElementById("inputNoteText").value.trim();
+  if (!text) return alert("الرجاء إدخال نص الملاحظة.");
+
+  const project = projects.find((p) => p.id === currentProjectId);
+  project.notes = project.notes || [];
+  project.notes.push({ text });
+  saveProjects();
+  renderTabContent();
+}
+
+function saveTransaction() {
+  const type = document.getElementById("inputTransactionType").value;
+  const amount = parseFloat(
+    document.getElementById("inputTransactionAmount").value
+  );
+  const description = document.getElementById("inputTransactionDescription").value.trim();
+  const exchangeRate = parseFloat(
+    document.getElementById("inputTransactionExchangeRate").value
+  );
+  if (!amount || amount <= 0) return alert("الرجاء إدخال مبلغ صحيح.");
+
+  const project = projects.find((p) => p.id === currentProjectId);
+  project.transactions = project.transactions || [];
+  project.transactions.push({ type, amount, description, exchangeRate });
+  saveProjects();
+  renderTabContent();
+}
+
+// --- إضافة مشروع جديد ---
+btnNewProject.addEventListener("click", () => {
+  const name = prompt("أدخل اسم المشروع الجديد:");
+  if (!name) return alert("اسم المشروع لا يمكن أن يكون فارغاً.");
+
+  const newProject = {
+    id: Date.now().toString(),
+    name,
+    description: "",
+    startDate: "",
+    endDate: "",
+    budget: 0,
+    tasks: [],
+    todo: [],
+    team: [],
+    notes: [],
+    transactions: [],
+    selectedCurrency: "USD",
+  };
+
+  projects.push(newProject);
+  currentProjectId = newProject.id;
+  saveProjects();
+  renderProjectsList();
+  renderTabContent();
 });
 
-projectSearchInput.addEventListener("input", () => {
-  renderProjectsList(projectSearchInput.value);
+// --- زر تصدير المشاريع ---
+btnExportProjects.addEventListener("click", () => {
+  if (projects.length === 0) {
+    alert("لا يوجد مشاريع لتصديرها.");
+    return;
+  }
+  const dataStr = JSON.stringify(projects, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "projects_backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
 });
 
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !modalOverlay.classList.contains("hidden")) {
-    closeModal();
+// --- زر استيراد المشاريع ---
+btnImportProjects.addEventListener("click", () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const importedProjects = JSON.parse(e.target.result);
+      if (!Array.isArray(importedProjects)) throw new Error("الملف غير صالح.");
+
+      // دمج المشاريع مع التحقق من عدم تكرار الـ id
+      importedProjects.forEach((impProject) => {
+        if (!projects.find((p) => p.id === impProject.id)) {
+          projects.push(impProject);
+        }
+      });
+
+      saveProjects();
+      renderProjectsList();
+      alert("تم استيراد المشاريع بنجاح.");
+    } catch {
+      alert("فشل في قراءة ملف المشاريع. يرجى التأكد من صحة الملف.");
+    }
+  };
+  reader.readAsText(file);
+});
+
+// --- زر مسح كل المشاريع ---
+btnClearProjects.addEventListener("click", () => {
+  if (confirm("هل أنت متأكد من مسح كل المشاريع؟ لا يمكن التراجع عن هذا الإجراء.")) {
+    projects = [];
+    currentProjectId = null;
+    saveProjects();
+    renderProjectsList();
+    renderTabContent();
   }
 });
 
-// بداية التطبيق
+// --- زر مسح المشروع المحدد ---
+btnDeleteProject.addEventListener("click", () => {
+  if (!currentProjectId) {
+    alert("لا يوجد مشروع محدد للحذف.");
+    return;
+  }
+
+  if (
+    confirm(
+      "هل أنت متأكد من مسح المشروع المحدد؟ هذا الإجراء لا يمكن التراجع عنه."
+    )
+  ) {
+    const index = projects.findIndex((p) => p.id === currentProjectId);
+    if (index !== -1) {
+      projects.splice(index, 1);
+
+      // تحديث المشروع المحدد بعد الحذف
+      if (projects.length > 0) currentProjectId = projects[0].id;
+      else currentProjectId = null;
+
+      saveProjects();
+      renderProjectsList();
+      renderTabContent();
+    }
+  }
+});
+
+// --- بحث المشاريع ---
+projectSearchInput.addEventListener("input", (e) => {
+  renderProjectsList(e.target.value);
+});
+
+// بدء التطبيق
 init();
