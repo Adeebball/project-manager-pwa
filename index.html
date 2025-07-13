@@ -1,75 +1,54 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>إدارة المشاريع - المدير المتكامل</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>إدارة المشاريع والمحافظة المالية</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="app-container">
-  <aside class="sidebar">
-    <h2>مدير المشاريع</h2>
-    <button id="btnNewProject" class="btn primary">إضافة مشروع جديد</button>
-    <input type="search" id="searchInput" placeholder="ابحث عن مشروع..." />
-    <ul id="projectsList" class="list"></ul>
-  </aside>
-  <main class="main-content">
-    <div id="projectDetails" class="hidden">
-      <header>
-        <h1 id="projName"></h1>
-        <button id="btnCloseProject" class="btn secondary">× إغلاق المشروع</button>
-      </header>
-      <nav class="tabs">
-        <button class="tab-btn active" data-tab="overview">الملخص</button>
-        <button class="tab-btn" data-tab="tasks">المهام</button>
-        <button class="tab-btn" data-tab="team">الأعضاء</button>
-        <button class="tab-btn" data-tab="finance">المالية</button>
-        <button class="tab-btn" data-tab="reports">التقارير</button>
-      </nav>
-      <section id="overview" class="tab-content active">
-        <h2>ملخص المشروع</h2>
-        <p id="projDesc"></p>
-        <p>تاريخ البداية: <span id="projStart"></span></p>
-        <p>تاريخ النهاية المتوقع: <span id="projEnd"></span></p>
-        <p>حالة المشروع: <span id="projStatus"></span></p>
-        <p>نسبة الإنجاز: <span id="projProgress"></span>%</p>
-      </section>
-      <section id="tasks" class="tab-content">
-        <h2>المهام</h2>
-        <button id="btnAddTask" class="btn primary">إضافة مهمة جديدة</button>
-        <ul id="tasksList" class="list"></ul>
-      </section>
-      <section id="team" class="tab-content">
-        <h2>الأعضاء</h2>
-        <button id="btnAddMember" class="btn primary">إضافة عضو</button>
-        <ul id="teamList" class="list"></ul>
-      </section>
-      <section id="finance" class="tab-content">
-        <h2>إدارة المالية</h2>
-        <button id="btnAddTransaction" class="btn primary">إضافة معاملة مالية</button>
-        <ul id="transactionsList" class="list"></ul>
-      </section>
-      <section id="reports" class="tab-content">
-        <h2>تقارير المشروع</h2>
-        <div id="reportsContent">لا توجد تقارير حالياً.</div>
-      </section>
-    </div>
-  </main>
-</div>
 
-<!-- مودال للنماذج -->
-<div id="modalOverlay" class="modal-overlay hidden">
-  <div class="modal">
-    <h2 id="modalTitle"></h2>
-    <form id="modalForm"></form>
-    <div class="modal-buttons">
-      <button id="modalCancel" class="btn secondary">إلغاء</button>
-      <button id="modalSubmit" class="btn primary">حفظ</button>
+  <aside class="sidebar glass">
+    <h2>المشاريع</h2>
+    <ul id="projectsList"></ul>
+    <button id="btnNewProject">+ إضافة مشروع جديد</button>
+  </aside>
+
+  <main class="main-content glass">
+    <header>
+      <h1 id="currentProjectName">يرجى اختيار مشروع</h1>
+      <button id="btnAddTask" disabled>+ إضافة مهمة جديدة</button>
+      <button id="btnAddMember" disabled>+ إضافة موظف جديد</button>
+      <button id="btnAddAttendance" disabled>+ تسجيل دوام</button>
+      <button id="btnAddTransaction" disabled>+ إضافة معاملة مالية</button>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="summary" class="tab active">ملخص</button>
+      <button data-tab="tasks" class="tab">المهام</button>
+      <button data-tab="employees" class="tab">الموظفين</button>
+      <button data-tab="attendance" class="tab">سجل الدوام</button>
+      <button data-tab="finance" class="tab">المحاسبة</button>
+      <button data-tab="reports" class="tab">التقارير</button>
+    </nav>
+
+    <section id="tabContent" class="tab-content">
+      <!-- المحتوى الديناميكي حسب التبويب -->
+      اختر مشروع لعرض التفاصيل
+    </section>
+  </main>
+
+  <!-- مودال عام -->
+  <div id="modalOverlay" class="hidden">
+    <div class="modal glass">
+      <h3 id="modalTitle"></h3>
+      <form id="modalForm">
+        <!-- حقول ديناميكية -->
+      </form>
+      <button id="modalCancel">إلغاء</button>
     </div>
   </div>
-</div>
 
-<script src="app.js" defer></script>
+  <script src="app.js"></script>
 </body>
 </html>
