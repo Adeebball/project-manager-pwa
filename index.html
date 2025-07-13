@@ -17,7 +17,14 @@
         autocomplete="off"
       />
       <ul id="projectsList"></ul>
+
       <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
+      <button id="btnExportProjects" class="btn glass-btn" style="margin-top:10px;">⬇️ تصدير المشاريع</button>
+      <button id="btnImportProjects" class="btn glass-btn" style="margin-top:10px;">⬆️ استيراد مشاريع</button>
+      <button id="btnClearProjects" class="btn glass-btn" style="margin-top:10px; background:#e63946;">🗑️ مسح كل المشاريع</button>
+      <button id="btnDeleteProject" class="btn glass-btn" style="margin-top:10px; background:#e63946;">🗑️ مسح المشروع المحدد</button>
+
+      <input type="file" id="fileInput" accept="application/json" style="display:none;" />
     </aside>
 
     <main>
@@ -32,14 +39,6 @@
 
       <section id="tabContent" class="tab-content glass-card"></section>
     </main>
-  </div>
-
-  <div id="modalOverlay" class="hidden">
-    <div class="modal">
-      <h2 id="modalTitle"></h2>
-      <form id="modalForm"></form>
-      <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
-    </div>
   </div>
 
   <script src="app.js"></script>
