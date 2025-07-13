@@ -583,3 +583,4 @@ projectSearchInput.addEventListener("input", (e) => {
 btnNewProject.addEventListener("click", () => openModal("project"));
 
 
+
