@@ -3,39 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مدير المشاريع - واجهة حديثة</title>
+  <title>إدارة المشاريع المتكاملة</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <aside>
-      <h2>مشاريعي</h2>
-      <input type="text" id="projectSearch" placeholder="ابحث عن مشروع..." autocomplete="off" />
+      <h2>المشاريع</h2>
+      <input type="text" id="projectSearch" placeholder="ابحث عن مشروع..." />
       <ul id="projectsList"></ul>
       <button id="btnNewProject" class="btn">+ مشروع جديد</button>
     </aside>
-
     <main>
       <nav>
-        <button class="tab active" data-tab="summary" type="button">ملخص</button>
-        <button class="tab" data-tab="tasks" type="button">مهام</button>
-        <button class="tab" data-tab="team" type="button">الفريق</button>
-        <button class="tab" data-tab="finance" type="button">المحاسبة</button>
+        <button class="tab active" data-tab="summary">الملخص</button>
+        <button class="tab" data-tab="tasks">المهام</button>
+        <button class="tab" data-tab="todo">To-Do</button>
+        <button class="tab" data-tab="goals">الأهداف</button>
+        <button class="tab" data-tab="notes">الملاحظات</button>
+        <button class="tab" data-tab="team">الفريق</button>
+        <button class="tab" data-tab="finance">المحاسبة</button>
+        <button class="tab" data-tab="settings">الإعدادات</button>
       </nav>
-
       <section id="tabContent" class="tab-content"></section>
     </main>
   </div>
 
-  <div id="modalOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-      <h3 id="modalTitle"></h3>
-      <form id="modalForm" novalidate></form>
-      <button id="modalCancel" class="btn cancel-btn" type="button">إلغاء</button>
+  <!-- المودال -->
+  <div id="modalOverlay" class="hidden">
+    <div class="modal glass-card">
+      <h2 id="modalTitle"></h2>
+      <form id="modalForm"></form>
+      <button id="modalCancel" class="btn cancel-btn">إلغاء</button>
     </div>
   </div>
 
   <script src="app.js"></script>
 </body>
 </html>
-
