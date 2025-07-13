@@ -595,6 +595,8 @@ projectSearchInput.addEventListener("input", () => {
 
 // --- زر إنشاء مشروع جديد ---
 btnNewProject.addEventListener("click", () => openModal("project"));
+document.getElementById("modalClose").addEventListener("click", closeModal);
+
 
 // --- بداية التطبيق ---
 init();
