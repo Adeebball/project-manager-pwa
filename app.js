@@ -582,3 +582,4 @@ projectSearchInput.addEventListener("input", (e) => {
 // زر إضافة مشروع جديد
 btnNewProject.addEventListener("click", () => openModal("project"));
 
+
