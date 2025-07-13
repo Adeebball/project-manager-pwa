@@ -3,16 +3,6 @@ let projects = JSON.parse(localStorage.getItem("projects") || "[]");
 let currentProjectId = null;
 let selectedCurrency = localStorage.getItem("selectedCurrency") || "USD";
 
-const currencyRates = {
-  USD: 1,
-  EUR: 0.95,
-  GBP: 0.82,
-  JPY: 145.7,
-  SAR: 3.75,
-  AED: 3.67,
-  EGP: 30.9,
-};
-
 const projectsListEl = document.getElementById("projectsList");
 const btnNewProject = document.getElementById("btnNewProject");
 const projectSearchInput = document.getElementById("projectSearch");
@@ -113,7 +103,7 @@ function renderTasksList(project) {
   const tasksList = document.getElementById("tasksList");
   tasksList.innerHTML = "";
   if (!project.tasks) project.tasks = [];
-  project.tasks.forEach((task, i) => {
+  project.tasks.forEach((task) => {
     const li = document.createElement("li");
     li.textContent = `${task.title} - الحالة: ${task.status || "معلقة"}`;
     tasksList.appendChild(li);
@@ -136,7 +126,7 @@ function renderTeamList(project) {
   const teamList = document.getElementById("teamList");
   teamList.innerHTML = "";
   if (!project.team) project.team = [];
-  project.team.forEach((member, i) => {
+  project.team.forEach((member) => {
     const li = document.createElement("li");
     li.textContent = `${member.name} - الدور: ${member.role}`;
     teamList.appendChild(li);
@@ -150,29 +140,31 @@ function renderFinance(project) {
     <div style="margin-bottom:10px;">
       <label for="currencySelect">اختيار العملة:</label>
       <select id="currencySelect" style="margin-left:10px; padding:5px; border-radius:5px;">
-        ${Object.keys(currencyRates)
+        ${Object.keys(project.currencyRates || defaultCurrencyRates)
           .map(
             (c) =>
               `<option value="${c}" ${
-                c === selectedCurrency ? "selected" : ""
+                c === (project.selectedCurrency || "USD") ? "selected" : ""
               }>${c}</option>`
           )
           .join("")}
       </select>
     </div>
     <ul id="transactionsList"></ul>
-    <p>الرصيد الحالي: <span id="currentBalance">0</span> ${selectedCurrency}</p>
+    <p>الرصيد الحالي: <span id="currentBalance">0</span> ${project.selectedCurrency || "USD"}</p>
   `;
+
   document
     .getElementById("btnAddTransaction")
     .addEventListener("click", () => openModal("transaction"));
-  document
-    .getElementById("currencySelect")
-    .addEventListener("change", (e) => {
-      selectedCurrency = e.target.value;
-      localStorage.setItem("selectedCurrency", selectedCurrency);
-      renderFinance(project);
-    });
+
+  document.getElementById("currencySelect").addEventListener("change", (e) => {
+    const project = projects.find((p) => p.id === currentProjectId);
+    project.selectedCurrency = e.target.value;
+    saveProjects();
+    renderFinance(project);
+  });
+
   renderTransactionsList(project);
 }
 
@@ -182,22 +174,28 @@ function renderTransactionsList(project) {
   if (!project.transactions) project.transactions = [];
   let balance = 0;
   project.transactions.forEach((t) => {
-    const amountInSelected = convertCurrency(t.amount, t.currency, selectedCurrency);
+    let rate = parseFloat(t.exchangeRate);
+    if (!rate || rate <= 0) rate = 1; // افتراضياً 1 لو ما تم تعيين سعر
+    const amountInSelected = t.amount * rate;
     balance += t.type === "إيراد" ? amountInSelected : -amountInSelected;
     const li = document.createElement("li");
     li.textContent = `[${t.type}] ${t.description || ""} : ${amountInSelected.toFixed(
       2
-    )} ${selectedCurrency}`;
+    )} ${project.selectedCurrency || "USD"}`;
     list.appendChild(li);
   });
   document.getElementById("currentBalance").textContent = balance.toFixed(2);
 }
 
-function convertCurrency(amount, from, to) {
-  const rateFrom = currencyRates[from] || 1;
-  const rateTo = currencyRates[to] || 1;
-  return (amount / rateFrom) * rateTo;
-}
+const defaultCurrencyRates = {
+  USD: 1,
+  EUR: 0.95,
+  GBP: 0.82,
+  JPY: 145.7,
+  SAR: 3.75,
+  AED: 3.67,
+  EGP: 30.9,
+};
 
 function openModal(type) {
   modalOverlay.classList.remove("hidden");
@@ -238,6 +236,8 @@ function openModal(type) {
           tasks: [],
           team: [],
           transactions: [],
+          selectedCurrency: "USD",
+          currencyRates: { ...defaultCurrencyRates },
         });
         saveProjects();
         renderProjectsList();
@@ -320,10 +320,20 @@ function openModal(type) {
 
         <label for="transactionCurrency">العملة</label>
         <select id="transactionCurrency" name="transactionCurrency">
-          ${Object.keys(currencyRates)
-            .map((c) => `<option value="${c}" ${c === selectedCurrency ? "selected" : ""}>${c}</option>`)
+          ${Object.keys(defaultCurrencyRates)
+            .map(
+              (c) =>
+                `<option value="${c}" ${
+                  c === (projects.find((p) => p.id === currentProjectId)?.selectedCurrency || "USD")
+                    ? "selected"
+                    : ""
+                }>${c}</option>`
+            )
             .join("")}
         </select>
+
+        <label for="exchangeRate">سعر التحويل إلى العملة المختارة *</label>
+        <input id="exchangeRate" name="exchangeRate" type="number" step="0.0001" min="0" value="1" required />
 
         <button type="submit" class="btn glass-btn">إضافة</button>
       `;
@@ -333,12 +343,13 @@ function openModal(type) {
         const desc = modalForm.transactionDesc.value.trim();
         const amount = parseFloat(modalForm.transactionAmount.value);
         const currency = modalForm.transactionCurrency.value;
+        const exchangeRate = parseFloat(modalForm.exchangeRate.value);
 
-        if (!type || isNaN(amount) || amount <= 0) {
+        if (!type || isNaN(amount) || amount <= 0 || !exchangeRate || exchangeRate <= 0) {
           return alert("يرجى تعبئة الحقول المطلوبة بشكل صحيح");
         }
         const project = projects.find((p) => p.id === currentProjectId);
-        project.transactions.push({ type, description: desc, amount, currency });
+        project.transactions.push({ type, description: desc, amount, currency, exchangeRate });
         saveProjects();
         renderFinance(project);
         closeModal();
@@ -370,4 +381,3 @@ function setupEventListeners() {
     openModal("project");
   });
 }
-
