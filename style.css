@@ -1,21 +1,21 @@
-/* قاعدة أساسية */
 * {
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   color: white;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
   background: linear-gradient(135deg, #1e1e1e 0%, #121212 100%);
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: stretch;
+  overflow: hidden;
 }
 
-/* تصميم التطبيق */
 #app {
   display: flex;
   width: 90vw;
@@ -37,11 +37,11 @@ aside {
 }
 
 aside h2 {
-  margin: 0 0 15px 0;
   font-weight: 700;
   font-size: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 #projectSearch {
@@ -83,7 +83,7 @@ aside h2 {
 .btn {
   background: rgba(255, 255, 255, 0.15);
   border: none;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 25px;
   color: white;
   font-weight: 600;
@@ -117,7 +117,7 @@ nav {
   border-bottom: 3px solid transparent;
   color: white;
   font-weight: 600;
-  padding: 10px 15px;
+  padding: 10px 20px;
   cursor: pointer;
   transition: border-color 0.3s ease;
   font-size: 1rem;
@@ -222,4 +222,36 @@ button {
 .cancel-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* تأثير زجاجي للأزرار والبطاقات */
+
+.glass-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.glass-btn:hover,
+.glass-btn:focus {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
 }
