@@ -1,580 +1,482 @@
-// قاعدة بيانات IndexedDB
-let db;
-let currentProjectId = null;
-let currentTab = 'summary';
-
-// فتح قاعدة البيانات
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ProjectManagerDB', 1);
-
-    request.onerror = () => reject('فشل فتح قاعدة البيانات');
-    request.onsuccess = () => {
-      db = request.result;
-      resolve();
-    };
-
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-
-      if (!db.objectStoreNames.contains('projects')) {
-        const projectStore = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-        projectStore.createIndex('name', 'name', { unique: false });
-      }
-
-      if (!db.objectStoreNames.contains('tasks')) {
-        const taskStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-        taskStore.createIndex('projectId', 'projectId', { unique: false });
-      }
-
-      if (!db.objectStoreNames.contains('members')) {
-        const memberStore = db.createObjectStore('members', { keyPath: 'id', autoIncrement: true });
-        memberStore.createIndex('projectId', 'projectId', { unique: false });
-      }
-
-      if (!db.objectStoreNames.contains('attendance')) {
-        const attendanceStore = db.createObjectStore('attendance', { keyPath: 'id', autoIncrement: true });
-        attendanceStore.createIndex('employeeId', 'employeeId', { unique: false });
-        attendanceStore.createIndex('projectId', 'projectId', { unique: false });
-      }
-
-      if (!db.objectStoreNames.contains('transactions')) {
-        const transactionStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
-        transactionStore.createIndex('projectId', 'projectId', { unique: false });
-        transactionStore.createIndex('type', 'type', { unique: false });
-      }
-    };
-  });
-}
-
-// ==== عمليات CRUD ====
-
-// إضافة مشروع
-function addProject(project) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('projects', 'readwrite');
-    const store = tx.objectStore('projects');
-    const req = store.add(project);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل إضافة المشروع');
-  });
-}
-
-// جلب جميع المشاريع
-function getAllProjects() {
-  return new Promise((resolve) => {
-    const tx = db.transaction('projects', 'readonly');
-    const store = tx.objectStore('projects');
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// جلب مشروع بالمعرف
-function getProjectById(id) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('projects', 'readonly');
-    const store = tx.objectStore('projects');
-    const req = store.get(id);
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// إضافة مهمة
-function addTask(task) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('tasks', 'readwrite');
-    const store = tx.objectStore('tasks');
-    const req = store.add(task);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل إضافة المهمة');
-  });
-}
-
-// جلب المهام حسب المشروع
-function getTasksByProject(projectId) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('tasks', 'readonly');
-    const store = tx.objectStore('tasks');
-    const index = store.index('projectId');
-    const req = index.getAll(IDBKeyRange.only(projectId));
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// إضافة عضو (موظف)
-function addMember(member) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('members', 'readwrite');
-    const store = tx.objectStore('members');
-    const req = store.add(member);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل إضافة الموظف');
-  });
-}
-
-// جلب الموظفين حسب المشروع
-function getMembersByProject(projectId) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('members', 'readonly');
-    const store = tx.objectStore('members');
-    const index = store.index('projectId');
-    const req = index.getAll(IDBKeyRange.only(projectId));
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// إضافة دوام
-function addAttendance(record) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('attendance', 'readwrite');
-    const store = tx.objectStore('attendance');
-    const req = store.add(record);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل تسجيل الدوام');
-  });
-}
-
-// جلب سجلات الدوام حسب المشروع
-function getAttendanceByProject(projectId) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('attendance', 'readonly');
-    const store = tx.objectStore('attendance');
-    const index = store.index('projectId');
-    const req = index.getAll(IDBKeyRange.only(projectId));
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// جلب سجلات دوام موظف معين
-function getAttendanceByEmployee(employeeId) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('attendance', 'readonly');
-    const store = tx.objectStore('attendance');
-    const index = store.index('employeeId');
-    const req = index.getAll(IDBKeyRange.only(employeeId));
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// إضافة معاملة مالية
-function addTransaction(tr) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readwrite');
-    const store = tx.objectStore('transactions');
-    const req = store.add(tr);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject('فشل إضافة المعاملة');
-  });
-}
-
-// جلب المعاملات حسب المشروع
-function getTransactionsByProject(projectId) {
-  return new Promise((resolve) => {
-    const tx = db.transaction('transactions', 'readonly');
-    const store = tx.objectStore('transactions');
-    const index = store.index('projectId');
-    const req = index.getAll(IDBKeyRange.only(projectId));
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-// ===== حساب الراتب حسب دوام الموظف =====
-async function calculateSalary(employeeId, year, month) {
-  const attendanceRecords = await getAttendanceByEmployee(employeeId);
-  const members = await getMembersByProject(currentProjectId);
-  const employee = members.find(m => m.id === employeeId);
-  if (!employee) return { daysWorked: 0, salary: 0 };
-
-  const filteredRecords = attendanceRecords.filter(r => {
-    const d = new Date(r.date);
-    return d.getFullYear() === year && (d.getMonth() + 1) === month;
-  });
-
-  const daysWorked = filteredRecords.length;
-  const salary = daysWorked * (employee.dailySalary || 0);
-  return { daysWorked, salary };
-}
-
-// ===== DOM وعناصر الصفحة =====
-
-const projectsList = document.getElementById('projectsList');
+// عناصر DOM
 const btnNewProject = document.getElementById('btnNewProject');
+const projectsList = document.getElementById('projectsList');
+const projectDetails = document.querySelector('.project-details');
+const currentProjectName = document.getElementById('currentProjectName');
+
+const tabs = document.querySelectorAll('.tab');
+const tabContent = document.getElementById('tabContent');
+
 const btnAddTask = document.getElementById('btnAddTask');
 const btnAddMember = document.getElementById('btnAddMember');
 const btnAddAttendance = document.getElementById('btnAddAttendance');
 const btnAddTransaction = document.getElementById('btnAddTransaction');
-
-const currentProjectName = document.getElementById('currentProjectName');
-const projectDetailsSection = document.querySelector('.project-details');
-
-const tabs = document.querySelectorAll('.tab');
-const tabContent = document.getElementById('tabContent');
 
 const modalOverlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalForm = document.getElementById('modalForm');
 const modalCancel = document.getElementById('modalCancel');
 
-function initEvents() {
-  btnNewProject.addEventListener('click', () => openModal('project'));
-  btnAddTask.addEventListener('click', () => {
-    if (!currentProjectId) return alert('اختر مشروع أولا');
-    openModal('task');
-  });
-  btnAddMember.addEventListener('click', () => {
-    if (!currentProjectId) return alert('اختر مشروع أولا');
-    openModal('member');
-  });
-  btnAddAttendance.addEventListener('click', () => {
-    if (!currentProjectId) return alert('اختر مشروع أولا');
-    openModal('attendance');
-  });
-  btnAddTransaction.addEventListener('click', () => {
-    if (!currentProjectId) return alert('اختر مشروع أولا');
-    openModal('transaction');
-  });
+let projects = JSON.parse(localStorage.getItem('projects')) || [];
+let selectedProjectIndex = null;
+let currentTab = 'summary';
 
-  modalCancel.addEventListener('click', closeModal);
-  modalForm.addEventListener('submit', onModalSubmit);
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentTab = tab.dataset.tab;
-      renderCurrentTab();
-    });
-  });
+// دوال تخزين واسترجاع
+function saveProjects() {
+  localStorage.setItem('projects', JSON.stringify(projects));
 }
 
-async function loadProjects() {
-  const projects = await getAllProjects();
+// عرض قائمة المشاريع
+function renderProjects() {
   projectsList.innerHTML = '';
-  if (projects.length === 0) {
-    projectsList.innerHTML = '<li>لا توجد مشاريع</li>';
-    projectDetailsSection.classList.add('hidden');
-    return;
-  }
-  projectDetailsSection.classList.remove('hidden');
-  projects.forEach(p => {
+  projects.forEach((proj, idx) => {
     const li = document.createElement('li');
-    li.textContent = p.name;
-    li.addEventListener('click', () => {
-      openProject(p.id);
+    li.textContent = proj.name;
+    li.tabIndex = 0;
+    li.classList.toggle('active', idx === selectedProjectIndex);
+    li.addEventListener('click', () => selectProject(idx));
+    li.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') selectProject(idx);
     });
     projectsList.appendChild(li);
   });
 }
 
-async function openProject(id) {
-  currentProjectId = id;
-  const project = await getProjectById(id);
-  currentProjectName.textContent = project.name;
-  btnAddTask.disabled = false;
-  btnAddMember.disabled = false;
-  btnAddAttendance.disabled = false;
-  btnAddTransaction.disabled = false;
-
-  tabs.forEach(t => t.classList.remove('active'));
-  document.querySelector('.tab[data-tab="summary"]').classList.add('active');
-  currentTab = 'summary';
-  renderCurrentTab();
+// اختيار مشروع
+function selectProject(idx) {
+  selectedProjectIndex = idx;
+  renderProjects();
+  showProjectDetails();
+  enableActionButtons(true);
+  renderTabContent();
 }
 
-function openModal(type) {
-  modalForm.innerHTML = '';
-  modalTitle.textContent = '';
-  switch(type) {
-    case 'project':
-      modalTitle.textContent = 'إضافة مشروع جديد';
-      modalForm.innerHTML = `
-        <label>اسم المشروع (مطلوب):</label>
-        <input name="name" required />
-        <label>الوصف:</label>
-        <input name="description" />
-        <label>تاريخ البداية:</label>
-        <input type="date" name="startDate" />
-        <label>تاريخ النهاية:</label>
-        <input type="date" name="endDate" />
-        <button type="submit">إضافة</button>
+// تفعيل/تعطيل أزرار الإضافة
+function enableActionButtons(enable) {
+  [btnAddTask, btnAddMember, btnAddAttendance, btnAddTransaction].forEach(btn => {
+    btn.disabled = !enable;
+    btn.setAttribute('aria-disabled', !enable);
+  });
+}
+
+// إظهار تفاصيل المشروع
+function showProjectDetails() {
+  if (selectedProjectIndex === null) {
+    projectDetails.classList.add('hidden');
+    currentProjectName.textContent = '-- اختر مشروع لعرض التفاصيل --';
+  } else {
+    projectDetails.classList.remove('hidden');
+    currentProjectName.textContent = projects[selectedProjectIndex].name;
+  }
+}
+
+// تغيير التبويب
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (!tab.classList.contains('active')) {
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      currentTab = tab.getAttribute('data-tab');
+      renderTabContent();
+    }
+  });
+});
+
+// عرض محتوى التبويب حسب القسم المختار
+function renderTabContent() {
+  if (selectedProjectIndex === null) {
+    tabContent.innerHTML = '<p>اختر مشروعًا من القائمة لبدء الإدارة.</p>';
+    return;
+  }
+
+  const project = projects[selectedProjectIndex];
+
+  switch (currentTab) {
+    case 'summary':
+      tabContent.innerHTML = `
+        <h3>ملخص المشروع</h3>
+        <p><strong>الوصف:</strong> ${project.description || 'لا يوجد وصف'}</p>
+        <p><strong>تاريخ البداية:</strong> ${project.startDate || 'غير محدد'}</p>
+        <p><strong>تاريخ النهاية:</strong> ${project.endDate || 'غير محدد'}</p>
+        <p><strong>حالة المشروع:</strong> ${project.status || 'نشط'}</p>
       `;
       break;
-    case 'task':
-      modalTitle.textContent = 'إضافة مهمة جديدة';
-      modalForm.innerHTML = `
-        <label>عنوان المهمة (مطلوب):</label>
-        <input name="title" required />
-        <label>الوصف:</label>
-        <input name="description" />
-        <label>الحالة:</label>
-        <select name="status">
-          <option value="معلقة">معلقة</option>
-          <option value="قيد التنفيذ">قيد التنفيذ</option>
-          <option value="مكتملة">مكتملة</option>
-        </select>
-        <button type="submit">إضافة</button>
-      `;
+
+    case 'tasks':
+      renderTasks(project);
       break;
-    case 'member':
-      modalTitle.textContent = 'إضافة موظف جديد';
-      modalForm.innerHTML = `
-        <label>اسم الموظف (مطلوب):</label>
-        <input name="name" required />
-        <label>الدور:</label>
-        <input name="role" />
-        <label>الراتب اليومي:</label>
-        <input name="dailySalary" type="number" min="0" step="0.01" />
-        <button type="submit">إضافة</button>
-      `;
+
+    case 'employees':
+      renderEmployees(project);
       break;
+
     case 'attendance':
-      modalTitle.textContent = 'تسجيل دوام';
-      modalForm.innerHTML = `
-        <label>الموظف (ID):</label>
-        <input name="employeeId" type="number" required />
-        <label>التاريخ:</label>
-        <input type="date" name="date" required />
-        <label>وقت الحضور:</label>
-        <input type="time" name="checkIn" required />
-        <label>وقت الانصراف:</label>
-        <input type="time" name="checkOut" />
-        <button type="submit">تسجيل</button>
-      `;
+      renderAttendance(project);
       break;
-    case 'transaction':
-      modalTitle.textContent = 'إضافة معاملة مالية';
-      modalForm.innerHTML = `
-        <label>التاريخ:</label>
-        <input type="date" name="date" required />
-        <label>النوع:</label>
-        <select name="type" required>
-          <option value="راتب">راتب</option>
-          <option value="مشتريات">مشتريات</option>
-          <option value="مبيعات">مبيعات</option>
-          <option value="نفقات">نفقات</option>
-        </select>
-        <label>المبلغ:</label>
-        <input type="number" step="0.01" name="amount" required />
-        <label>الوصف:</label>
-        <input name="description" />
-        <label>نوع الخدمة (للمبيعات فقط):</label>
-        <input name="serviceType" />
-        <label>موظف (ID) (لرواتب فقط):</label>
-        <input name="employeeId" type="number" />
-        <button type="submit">إضافة</button>
-      `;
+
+    case 'finance':
+      renderFinance(project);
+      break;
+
+    case 'reports':
+      tabContent.innerHTML = `<p>قيد التطوير...</p>`;
       break;
   }
+}
+
+// مهام
+function renderTasks(project) {
+  const tasks = project.tasks || [];
+  let html = `<h3>المهام</h3>`;
+  if (tasks.length === 0) {
+    html += '<p>لا توجد مهام حالياً.</p>';
+  } else {
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>المهمة</th>
+            <th>الحالة</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tasks
+            .map(
+              (task, idx) => `
+            <tr>
+              <td>${task.name}</td>
+              <td>${task.status}</td>
+              <td><button onclick="editTask(${idx})">تعديل</button></td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  tabContent.innerHTML = html;
+}
+
+// موظفين
+function renderEmployees(project) {
+  const employees = project.employees || [];
+  let html = `<h3>الموظفين</h3>`;
+  if (employees.length === 0) {
+    html += '<p>لا يوجد موظفين حالياً.</p>';
+  } else {
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>اسم الموظف</th>
+            <th>الوظيفة</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${employees
+            .map(
+              (emp, idx) => `
+            <tr>
+              <td>${emp.name}</td>
+              <td>${emp.position}</td>
+              <td><button onclick="editEmployee(${idx})">تعديل</button></td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  tabContent.innerHTML = html;
+}
+
+// دوام
+function renderAttendance(project) {
+  const attendance = project.attendance || [];
+  let html = `<h3>سجل الدوام</h3>`;
+  if (attendance.length === 0) {
+    html += '<p>لا يوجد سجلات دوام حالياً.</p>';
+  } else {
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>اسم الموظف</th>
+            <th>تاريخ</th>
+            <th>ساعات العمل</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${attendance
+            .map(
+              (att) => `
+            <tr>
+              <td>${att.employeeName}</td>
+              <td>${att.date}</td>
+              <td>${att.hours}</td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  tabContent.innerHTML = html;
+}
+
+// المحاسبة
+function renderFinance(project) {
+  const finance = project.finance || {
+    previousBalance: 0,
+    salaries: [],
+    purchases: [],
+    sales: [],
+    expenses: [],
+  };
+
+  let totalSalaries = finance.salaries.reduce((a, b) => a + (b.amount || 0), 0);
+  let totalPurchases = finance.purchases.reduce((a, b) => a + (b.amount || 0), 0);
+  let totalSales = finance.sales.reduce((a, b) => a + (b.amount || 0), 0);
+  let totalExpenses = finance.expenses.reduce((a, b) => a + (b.amount || 0), 0);
+
+  let currentBalance =
+    finance.previousBalance + totalSales - totalPurchases - totalSalaries - totalExpenses;
+
+  let html = `<h3>برنامج المحاسبة</h3>`;
+  html += `
+    <p><strong>الرصيد السابق:</strong> ${finance.previousBalance.toFixed(2)} د.ع</p>
+    <p><strong>إجمالي الرواتب:</strong> ${totalSalaries.toFixed(2)} د.ع</p>
+    <p><strong>إجمالي المشتريات:</strong> ${totalPurchases.toFixed(2)} د.ع</p>
+    <p><strong>إجمالي المبيعات:</strong> ${totalSales.toFixed(2)} د.ع</p>
+    <p><strong>إجمالي النفقات:</strong> ${totalExpenses.toFixed(2)} د.ع</p>
+    <p><strong>الرصيد الحالي:</strong> ${currentBalance.toFixed(2)} د.ع</p>
+  `;
+
+  tabContent.innerHTML = html;
+}
+
+// فتح المودال لإضافة مشروع جديد
+btnNewProject.addEventListener('click', () => {
+  openModal('إضافة مشروع جديد', [
+    { label: 'اسم المشروع', name: 'name', type: 'text', required: true },
+    { label: 'الوصف', name: 'description', type: 'text' },
+    { label: 'تاريخ البداية', name: 'startDate', type: 'date' },
+    { label: 'تاريخ النهاية', name: 'endDate', type: 'date' },
+    {
+      label: 'حالة المشروع',
+      name: 'status',
+      type: 'select',
+      options: ['نشط', 'مؤجل', 'مكتمل'],
+      required: true,
+    },
+  ], (formData) => {
+    const newProject = {
+      name: formData.name,
+      description: formData.description,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      status: formData.status,
+      tasks: [],
+      employees: [],
+      attendance: [],
+      finance: {
+        previousBalance: 0,
+        salaries: [],
+        purchases: [],
+        sales: [],
+        expenses: [],
+      },
+    };
+    projects.push(newProject);
+    saveProjects();
+    renderProjects();
+    selectProject(projects.length - 1);
+    closeModal();
+  });
+});
+
+// أزرار الإضافة لكل قسم
+
+btnAddTask.addEventListener('click', () => {
+  openModal('إضافة مهمة جديدة', [
+    { label: 'اسم المهمة', name: 'name', type: 'text', required: true },
+    {
+      label: 'الحالة',
+      name: 'status',
+      type: 'select',
+      options: ['معلقة', 'قيد التنفيذ', 'مكتملة'],
+      required: true,
+    },
+  ], (formData) => {
+    projects[selectedProjectIndex].tasks.push({
+      name: formData.name,
+      status: formData.status,
+    });
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+});
+
+btnAddMember.addEventListener('click', () => {
+  openModal('إضافة موظف جديد', [
+    { label: 'اسم الموظف', name: 'name', type: 'text', required: true },
+    { label: 'الوظيفة', name: 'position', type: 'text' },
+  ], (formData) => {
+    projects[selectedProjectIndex].employees.push({
+      name: formData.name,
+      position: formData.position,
+    });
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+});
+
+btnAddAttendance.addEventListener('click', () => {
+  openModal('تسجيل دوام', [
+    {
+      label: 'اسم الموظف',
+      name: 'employeeName',
+      type: 'select',
+      options: projects[selectedProjectIndex].employees.map(e => e.name),
+      required: true,
+    },
+    { label: 'التاريخ', name: 'date', type: 'date', required: true },
+    { label: 'ساعات العمل', name: 'hours', type: 'number', min: 0, step: 0.1, required: true },
+  ], (formData) => {
+    projects[selectedProjectIndex].attendance.push({
+      employeeName: formData.employeeName,
+      date: formData.date,
+      hours: parseFloat(formData.hours),
+    });
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+});
+
+btnAddTransaction.addEventListener('click', () => {
+  openModal('إضافة معاملة مالية', [
+    {
+      label: 'نوع المعاملة',
+      name: 'type',
+      type: 'select',
+      options: ['راتب', 'مشتريات', 'مبيعات', 'نفقات'],
+      required: true,
+    },
+    { label: 'الوصف', name: 'description', type: 'text' },
+    { label: 'المبلغ', name: 'amount', type: 'number', min: 0, step: 0.01, required: true },
+  ], (formData) => {
+    const finance = projects[selectedProjectIndex].finance;
+    const amount = parseFloat(formData.amount);
+    switch (formData.type) {
+      case 'راتب':
+        finance.salaries.push({ description: formData.description, amount });
+        break;
+      case 'مشتريات':
+        finance.purchases.push({ description: formData.description, amount });
+        break;
+      case 'مبيعات':
+        finance.sales.push({ description: formData.description, amount });
+        break;
+      case 'نفقات':
+        finance.expenses.push({ description: formData.description, amount });
+        break;
+    }
+    saveProjects();
+    renderTabContent();
+    closeModal();
+  });
+});
+
+// فتح المودال مع بناء النموذج
+function openModal(title, fields, onSubmit) {
+  modalTitle.textContent = title;
+  modalForm.innerHTML = '';
+
+  fields.forEach(field => {
+    const label = document.createElement('label');
+    label.textContent = field.label;
+    label.setAttribute('for', field.name);
+    modalForm.appendChild(label);
+
+    let input;
+    if (field.type === 'select') {
+      input = document.createElement('select');
+      input.name = field.name;
+      input.id = field.name;
+      if (field.required) input.required = true;
+
+      field.options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        input.appendChild(option);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = field.type || 'text';
+      input.name = field.name;
+      input.id = field.name;
+      if (field.required) input.required = true;
+      if (field.min !== undefined) input.min = field.min;
+      if (field.step !== undefined) input.step = field.step;
+    }
+    modalForm.appendChild(input);
+  });
+
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'submit';
+  submitBtn.textContent = 'حفظ';
+  modalForm.appendChild(submitBtn);
+
   modalOverlay.classList.remove('hidden');
+  modalForm.onsubmit = e => {
+    e.preventDefault();
+    const formData = {};
+    fields.forEach(f => {
+      formData[f.name] = modalForm.elements[f.name].value;
+    });
+    onSubmit(formData);
+  };
 }
 
 function closeModal() {
   modalOverlay.classList.add('hidden');
+  modalForm.innerHTML = '';
 }
 
-// معالجة نموذج الإضافة
-async function onModalSubmit(e) {
-  e.preventDefault();
-  const formData = new FormData(modalForm);
-  const data = Object.fromEntries(formData.entries());
+modalCancel.addEventListener('click', closeModal);
 
-  try {
-    switch(modalTitle.textContent) {
-      case 'إضافة مشروع جديد':
-        if (!data.name.trim()) throw 'اسم المشروع مطلوب';
-        await addProject({
-          name: data.name.trim(),
-          description: data.description || '',
-          startDate: data.startDate || '',
-          endDate: data.endDate || ''
-        });
-        await loadProjects();
-        break;
-
-      case 'إضافة مهمة جديدة':
-        if (!data.title.trim()) throw 'عنوان المهمة مطلوب';
-        await addTask({
-          projectId: currentProjectId,
-          title: data.title.trim(),
-          description: data.description || '',
-          status: data.status || 'معلقة'
-        });
-        renderCurrentTab();
-        break;
-
-      case 'إضافة موظف جديد':
-        if (!data.name.trim()) throw 'اسم الموظف مطلوب';
-        await addMember({
-          projectId: currentProjectId,
-          name: data.name.trim(),
-          role: data.role || '',
-          dailySalary: parseFloat(data.dailySalary) || 0
-        });
-        renderCurrentTab();
-        break;
-
-      case 'تسجيل دوام':
-        if (!data.employeeId) throw 'رقم الموظف مطلوب';
-        await addAttendance({
-          projectId: currentProjectId,
-          employeeId: parseInt(data.employeeId),
-          date: data.date,
-          checkIn: data.checkIn,
-          checkOut: data.checkOut || ''
-        });
-        renderCurrentTab();
-        break;
-
-      case 'إضافة معاملة مالية':
-        if (!data.date || !data.type || !data.amount) throw 'الحقول المطلوبة غير مكتملة';
-        await addTransaction({
-          projectId: currentProjectId,
-          date: data.date,
-          type: data.type,
-          amount: parseFloat(data.amount),
-          description: data.description || '',
-          serviceType: data.serviceType || '',
-          employeeId: data.employeeId ? parseInt(data.employeeId) : null
-        });
-        renderCurrentTab();
-        break;
-    }
-  } catch(err) {
-    alert(err);
+window.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) {
+    closeModal();
   }
-  closeModal();
+});
+
+// وظائف التحرير (ممكن تضيف لاحقاً)
+window.editTask = function (idx) {
+  alert('ميزة تعديل المهمة قيد التطوير');
+};
+window.editEmployee = function (idx) {
+  alert('ميزة تعديل الموظف قيد التطوير');
+};
+
+// تهيئة التطبيق
+function init() {
+  renderProjects();
+  showProjectDetails();
+  enableActionButtons(false);
 }
 
-// عرض محتوى التبويب الحالي
-async function renderCurrentTab() {
-  if (!currentProjectId) {
-    tabContent.innerHTML = '<p>اختر مشروعاً للعرض</p>';
-    return;
-  }
-
-  switch(currentTab) {
-    case 'summary':
-      await renderSummary();
-      break;
-    case 'tasks':
-      await renderTasks();
-      break;
-    case 'employees':
-      await renderEmployees();
-      break;
-    case 'attendance':
-      await renderAttendance();
-      break;
-    case 'finance':
-      await renderFinance();
-      break;
-    case 'reports':
-      await renderReports();
-      break;
-  }
-}
-
-async function renderSummary() {
-  const project = await getProjectById(currentProjectId);
-  const tasks = await getTasksByProject(currentProjectId);
-
-  let completedTasks = tasks.filter(t => t.status === 'مكتملة').length;
-  let progress = tasks.length ? ((completedTasks / tasks.length) * 100).toFixed(1) : 0;
-
-  tabContent.innerHTML = `
-    <p><strong>الوصف:</strong> ${project.description || '-'}</p>
-    <p><strong>تاريخ البداية:</strong> ${project.startDate || '-'}</p>
-    <p><strong>تاريخ النهاية:</strong> ${project.endDate || '-'}</p>
-    <p><strong>عدد المهام:</strong> ${tasks.length}</p>
-    <p><strong>نسبة الإنجاز:</strong> ${progress}%</p>
-  `;
-}
-
-async function renderTasks() {
-  const tasks = await getTasksByProject(currentProjectId);
-  if (tasks.length === 0) {
-    tabContent.innerHTML = '<p>لا توجد مهام حالياً.</p>';
-    return;
-  }
-
-  let html = `<table><thead><tr><th>عنوان المهمة</th><th>الحالة</th></tr></thead><tbody>`;
-  tasks.forEach(t => {
-    html += `<tr><td>${t.title}</td><td>${t.status}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  tabContent.innerHTML = html;
-}
-
-async function renderEmployees() {
-  const members = await getMembersByProject(currentProjectId);
-  if (members.length === 0) {
-    tabContent.innerHTML = '<p>لا يوجد موظفين.</p>';
-    return;
-  }
-  let html = `<table><thead><tr><th>الاسم</th><th>الدور</th><th>الراتب اليومي</th></tr></thead><tbody>`;
-  members.forEach(m => {
-    html += `<tr><td>${m.name}</td><td>${m.role || '-'}</td><td>${m.dailySalary.toFixed(2)}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  tabContent.innerHTML = html;
-}
-
-async function renderAttendance() {
-  const attendanceRecords = await getAttendanceByProject(currentProjectId);
-  if (attendanceRecords.length === 0) {
-    tabContent.innerHTML = '<p>لا توجد سجلات دوام.</p>';
-    return;
-  }
-  let html = `<table><thead><tr><th>الموظف</th><th>التاريخ</th><th>حضور</th><th>انصراف</th></tr></thead><tbody>`;
-  const members = await getMembersByProject(currentProjectId);
-  attendanceRecords.forEach(r => {
-    let emp = members.find(m => m.id === r.employeeId);
-    html += `<tr>
-      <td>${emp ? emp.name : 'غير معروف'}</td>
-      <td>${r.date}</td>
-      <td>${r.checkIn}</td>
-      <td>${r.checkOut || '-'}</td>
-    </tr>`;
-  });
-  html += `</tbody></table>`;
-  tabContent.innerHTML = html;
-}
-
-async function renderFinance() {
-  const transactions = await getTransactionsByProject(currentProjectId);
-  if (transactions.length === 0) {
-    tabContent.innerHTML = '<p>لا توجد معاملات مالية.</p>';
-    return;
-  }
-
-  let html = `<table><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>الوصف</th></tr></thead><tbody>`;
-  transactions.forEach(t => {
-    let desc = t.description || '-';
-    if (t.type === 'مبيعات' && t.serviceType) {
-      desc += ` (الخدمة: ${t.serviceType})`;
-    }
-    if (t.type === 'راتب' && t.employeeId) {
-      desc += ` (موظف ID: ${t.employeeId})`;
-    }
-    html += `<tr>
-      <td>${t.date}</td>
-      <td>${t.type}</td>
-      <td>${t.amount.toFixed(2)}</td>
-      <td>${desc}</td>
-    </tr>`;
-  });
-  html += `</tbody></table>`;
-  tabContent.innerHTML = html;
-}
-
-async function renderReports() {
-  tabContent.innerHTML = '<p>ميزة التقارير قيد التطوير...</p>';
-}
-
-// بدء التطبيق
-(async function init() {
-  await openDB();
-  initEvents();
-  await loadProjects();
-})();
+init();
