@@ -1,228 +1,203 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
-
-* {
-  box-sizing: border-box;
-}
-
+/* ستايل داكن مع تأثير زجاجي */
 body {
-  margin: 0;
-  font-family: 'Cairo', sans-serif;
-  background: linear-gradient(135deg, #1e1e1e, #121212);
+  background: #121212;
   color: white;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
   direction: rtl;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  overflow: hidden;
 }
 
 #app {
   display: flex;
-  width: 95vw;
-  max-width: 1200px;
-  height: 90vh;
-  background: rgba(255 255 255 / 0.05);
-  border-radius: 15px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.8);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  overflow: hidden;
+  height: 100vh;
+  gap: 10px;
+  padding: 10px;
 }
 
 aside {
-  width: 320px;
-  background: rgba(255 255 255 / 0.1);
-  padding: 20px;
+  width: 250px;
+  background: rgba(255 255 255 / 0.05);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255 255 255 / 0.1);
   display: flex;
   flex-direction: column;
-  border-right: 1.5px solid rgba(255 255 255 / 0.15);
 }
 
 aside h2 {
   margin: 0 0 10px 0;
   font-weight: 700;
-  font-size: 1.8rem;
-  text-align: center;
-  user-select: none;
+  font-size: 1.3rem;
 }
 
 #projectSearch {
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 8px;
+  border-radius: 8px;
   border: none;
   margin-bottom: 15px;
   background: rgba(255 255 255 / 0.1);
   color: white;
-  font-size: 1rem;
 }
 
 #projectsList {
+  flex-grow: 1;
   list-style: none;
   padding: 0;
-  margin: 0;
-  flex-grow: 1;
+  margin: 0 0 15px 0;
   overflow-y: auto;
 }
 
 #projectsList li {
-  padding: 12px 15px;
-  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 12px;
-  transition: background 0.25s ease;
-  user-select: none;
+  transition: background-color 0.3s ease;
 }
 
-#projectsList li.active,
 #projectsList li:hover {
-  background: rgba(255 255 255 / 0.2);
+  background-color: rgba(255 255 255 / 0.15);
 }
 
-.btn {
-  cursor: pointer;
-  border: none;
-  outline: none;
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 10px 18px;
-  border-radius: 12px;
-  transition: background 0.3s ease, color 0.3s ease;
-  user-select: none;
-}
-
-.glass-btn {
-  background: rgba(255 255 255 / 0.15);
+#projectsList li.active {
+  background-color: #007aff;
   color: white;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(255 255 255 / 0.15);
-}
-
-.glass-btn:hover {
-  background: rgba(255 255 255 / 0.3);
-  color: #000;
+  font-weight: bold;
 }
 
 main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  overflow-y: auto;
 }
 
 nav {
   display: flex;
-  justify-content: flex-start;
-  margin-bottom: 15px;
-  gap: 15px;
-  user-select: none;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .tab {
-  background: rgba(255 255 255 / 0.15);
-  color: white;
-  padding: 10px 25px;
-  border-radius: 12px;
+  background: rgba(255 255 255 / 0.1);
   border: none;
-  font-weight: 600;
+  padding: 10px 15px;
+  border-radius: 12px;
+  color: white;
   cursor: pointer;
-  transition: background 0.25s ease;
+  transition: background-color 0.3s ease;
+  font-weight: 600;
+  flex-grow: 1;
+  text-align: center;
 }
 
 .tab.active {
-  background: rgba(255 255 255 / 0.5);
-  color: black;
-  font-weight: 700;
+  background-color: #007aff;
+  color: white;
 }
 
 .tab:hover:not(.active) {
-  background: rgba(255 255 255 / 0.3);
+  background-color: rgba(255 255 255 / 0.2);
 }
 
 .tab-content {
-  background: rgba(255 255 255 / 0.1);
-  border-radius: 15px;
-  padding: 20px;
+  background: rgba(255 255 255 / 0.05);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255 255 255 / 0.1);
   flex-grow: 1;
-  color: white;
   overflow-y: auto;
-  box-shadow: 0 0 30px rgba(255 255 255 / 0.15);
-  user-select: text;
-}
-
-h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
 }
 
 ul {
   list-style-type: none;
   padding: 0;
-  margin: 0;
 }
 
-ul li {
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255 255 255 / 0.15);
-  user-select: none;
+li {
+  margin-bottom: 8px;
 }
 
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255 255 255 / 0.15);
-  padding: 25px 30px;
-  border-radius: 20px;
-  box-shadow: 0 0 50px rgba(255 255 255 / 0.25);
-  max-width: 400px;
-  width: 90%;
-  z-index: 1001;
+.btn {
+  background: #007aff;
+  border: none;
   color: white;
-  user-select: none;
+  padding: 10px 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background: #005bb5;
+}
+
+.glass-btn {
+  background: rgba(255 255 255 / 0.15);
+  border: 1px solid rgba(255 255 255 / 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+}
+
+.glass-card {
+  background: rgba(255 255 255 / 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255 255 255 / 0.1);
+  color: white;
 }
 
 .hidden {
   display: none;
 }
 
-#modalForm label {
-  display: block;
-  margin-top: 12px;
-  margin-bottom: 5px;
-  font-weight: 600;
-  user-select: none;
+/* Modal */
+
+#modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
-#modalForm input,
-#modalForm select {
+.modal {
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.modal input,
+.modal select {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 8px;
   border: none;
-  background: rgba(255 255 255 / 0.2);
+  background: rgba(255 255 255 / 0.15);
   color: white;
-  font-size: 1rem;
-  user-select: text;
 }
 
 .cancel-btn {
+  background: #b22222 !important;
   margin-top: 15px;
-  background: #b33030 !important;
-  color: white !important;
-  width: 100%;
-}
-
-#currencySelect {
-  border-radius: 12px;
-  border: none;
-  padding: 6px 10px;
-  background: rgba(255 255 255 / 0.2);
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
-  user-select: text;
 }
