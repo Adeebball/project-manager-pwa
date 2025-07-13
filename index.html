@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مدير المشاريع - PWA</title>
+  <title>مدير المشاريع - PWA متطور</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -20,13 +18,18 @@
       />
       <ul id="projectsList"></ul>
       <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
+
+      <button id="btnSettings" class="btn glass-btn" style="margin-top:20px;">⚙️ الإعدادات</button>
     </aside>
 
     <main>
       <nav>
         <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
         <button class="tab glass-btn" data-tab="tasks" type="button">مهام</button>
+        <button class="tab glass-btn" data-tab="todo" type="button">To-Do</button>
         <button class="tab glass-btn" data-tab="team" type="button">الفريق</button>
+        <button class="tab glass-btn" data-tab="goals" type="button">الأهداف</button>
+        <button class="tab glass-btn" data-tab="notes" type="button">الملاحظات</button>
         <button class="tab glass-btn" data-tab="finance" type="button">المحاسبة</button>
       </nav>
 
@@ -53,4 +56,3 @@
   <script src="./app.js"></script>
 </body>
 </html>
-
