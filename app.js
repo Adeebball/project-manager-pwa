@@ -2,6 +2,7 @@
 let projects = JSON.parse(localStorage.getItem("projects") || "[]");
 let currentProjectId = null;
 let selectedCurrency = localStorage.getItem("selectedCurrency") || "USD";
+
 const currencyRates = {
   USD: 1,
   EUR: 0.95,
@@ -146,7 +147,7 @@ function renderFinance(project) {
   tabContent.innerHTML = `
     <h3>المحاسبة</h3>
     <button id="btnAddTransaction" class="btn glass-btn">+ إضافة معاملة جديدة</button>
-    <div>
+    <div style="margin-bottom:10px;">
       <label for="currencySelect">اختيار العملة:</label>
       <select id="currencySelect" style="margin-left:10px; padding:5px; border-radius:5px;">
         ${Object.keys(currencyRates)
@@ -182,9 +183,11 @@ function renderTransactionsList(project) {
   let balance = 0;
   project.transactions.forEach((t) => {
     const amountInSelected = convertCurrency(t.amount, t.currency, selectedCurrency);
-    balance += amountInSelected;
+    balance += t.type === "إيراد" ? amountInSelected : -amountInSelected;
     const li = document.createElement("li");
-    li.textContent = `[${t.type}] ${t.description} : ${amountInSelected.toFixed(2)} ${selectedCurrency}`;
+    li.textContent = `[${t.type}] ${t.description || ""} : ${amountInSelected.toFixed(
+      2
+    )} ${selectedCurrency}`;
     list.appendChild(li);
   });
   document.getElementById("currentBalance").textContent = balance.toFixed(2);
@@ -357,6 +360,7 @@ modalOverlay.addEventListener("click", (e) => {
 function saveProjects() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
+
 function setupEventListeners() {
   projectSearchInput.addEventListener("input", () => {
     renderProjectsList(projectSearchInput.value);
@@ -366,5 +370,3 @@ function setupEventListeners() {
     openModal("project");
   });
 }
-
-
