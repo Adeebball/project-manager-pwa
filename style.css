@@ -1,192 +1,225 @@
-/* Reset */
+/* قاعدة أساسية */
 * {
   box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color: white;
+}
+
+body {
   margin: 0;
-  padding: 0;
-}
-html, body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to bottom right, #1e1e1e, #2a2a2a);
-  color: #fff;
-  min-height: 100vh;
-  direction: rtl;
-}
-
-/* Container */
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: auto;
-}
-
-/* Header */
-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-header h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #ffffff;
-  text-shadow: 0 0 10px #4fc3f7;
-}
-
-/* Buttons */
-.btn {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-  backdrop-filter: blur(15px);
-  transition: background 0.3s ease;
-}
-.btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-.btn.secondary {
-  background: rgba(255, 0, 0, 0.1);
-}
-
-/* Layout */
-main {
+  background: linear-gradient(135deg, #1e1e1e 0%, #121212 100%);
+  height: 100vh;
   display: flex;
-  gap: 20px;
+  justify-content: center;
+  align-items: stretch;
 }
 
-/* Sidebar - المشاريع */
-.projects-section {
-  width: 30%;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 16px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+/* تصميم التطبيق */
+#app {
+  display: flex;
+  width: 90vw;
+  max-width: 1200px;
+  height: 90vh;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
 }
+
+aside {
+  width: 300px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+aside h2 {
+  margin: 0 0 15px 0;
+  font-weight: 700;
+  font-size: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+}
+
 #projectSearch {
-  margin: 15px 0;
-  width: 100%;
-  padding: 10px 15px;
-  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
   border: none;
   background: rgba(255, 255, 255, 0.15);
   color: white;
   font-size: 1rem;
-  outline: none;
 }
+
 #projectSearch::placeholder {
-  color: #ccc;
+  color: rgba(255, 255, 255, 0.6);
 }
-.projects-list {
+
+#projectsList {
   list-style: none;
-}
-.projects-list li {
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  margin-bottom: 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-.projects-list li:hover,
-.projects-list li.active {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* Details */
-.details-section {
-  width: 70%;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 16px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Tabs */
-.tabs {
+#projectsList li {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+#projectsList li:hover,
+#projectsList li.active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 20px;
+  overflow: hidden;
+}
+
+nav {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
+
 .tab {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: white;
+  font-weight: 600;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  font-size: 1rem;
+}
+
+.tab.active {
+  border-color: #0af;
+  color: #0af;
+}
+
+.tab-content {
+  flex-grow: 1;
+  overflow-y: auto;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-.tab:hover,
-.tab.active {
-  background: rgba(255, 255, 255, 0.25);
+  padding: 20px;
+  display: none;
 }
 
-/* Tab Content */
-.tab-content {
-  opacity: 0;
-  transform: translateY(15px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
 .tab-content.show {
-  opacity: 1;
-  transform: translateY(0);
+  display: block;
 }
 
-/* Modal */
-.modal-overlay {
+.tab-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+button {
+  margin-left: 5px;
+}
+
+/* مودال */
+#modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(10, 10, 10, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  align-items: center;
+  z-index: 999;
 }
-.modal-overlay:not(.hidden) {
-  opacity: 1;
-  pointer-events: auto;
+
+#modalOverlay.hidden {
+  display: none;
 }
+
 .modal {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
   padding: 25px;
-  border-radius: 20px;
+  border-radius: 15px;
   width: 400px;
-  color: #fff;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(25px);
+  max-width: 90vw;
+  color: white;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
 }
-.modal h2 {
+
+.modal h3 {
+  margin-top: 0;
   margin-bottom: 15px;
-  font-size: 1.3rem;
+  font-weight: 700;
 }
-.modal label {
+
+.modal form label {
   display: block;
-  margin-top: 10px;
   margin-bottom: 5px;
+  font-weight: 600;
 }
-.modal input,
-.modal select {
+
+.modal form input,
+.modal form select {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
   border: none;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
 }
-.modal-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin-top: 10px;
+  width: 100%;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.7);
 }
