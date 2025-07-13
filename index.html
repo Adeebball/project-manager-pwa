@@ -1,48 +1,33 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مدير المشاريع - PWA</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div id="app">
-    <aside>
-      <h2>مشاريعي</h2>
-      <input
-        type="text"
-        id="projectSearch"
-        placeholder="ابحث عن مشروع..."
-        autocomplete="off"
-      />
-      <ul id="projectsList"></ul>
-      <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مدير المشاريع</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside>
+        <h2>مشاريعي</h2>
+        <input
+          type="text"
+          id="projectSearch"
+          placeholder="ابحث عن مشروع..."
+          autocomplete="off"
+        />
+        <ul id="projectsList"></ul>
+        <button id="btnNewProject" class="btn glass-btn">+ مشروع جديد</button>
+      </aside>
 
-    <main>
-      <nav>
-        <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
-        <button class="tab glass-btn" data-tab="tasks" type="button">مهام</button>
-        <button class="tab glass-btn" data-tab="todo" type="button">To-Do</button>
-        <button class="tab glass-btn" data-tab="team" type="button">الفريق</button>
-        <button class="tab glass-btn" data-tab="notes" type="button">ملاحظات</button>
-        <button class="tab glass-btn" data-tab="finance" type="button">المحاسبة</button>
-      </nav>
+      <main>
+        <nav>
+          <button class="tab active glass-btn" data-tab="summary" type="button">ملخص</button>
+        </nav>
+        <section id="tabContent" class="tab-content glass-card"></section>
+      </main>
+    </div>
 
-      <section id="tabContent" class="tab-content glass-card"></section>
-    </main>
-  </div>
-
-
->
-
-
-  </div>
-</div>
-
-
-  <script src="app.js"></script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>
