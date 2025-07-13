@@ -18,6 +18,9 @@ aside {
   backdrop-filter: blur(10px);
   padding: 20px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 main {
@@ -39,6 +42,7 @@ nav {
   margin: 0 5px;
   border-radius: 20px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .tab.active {
@@ -51,9 +55,14 @@ nav {
   border: none;
   color: #fff;
   padding: 8px 15px;
-  margin-top: 10px;
   border-radius: 20px;
   cursor: pointer;
+  transition: background 0.3s;
+  font-size: 14px;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .tab-content {
@@ -63,6 +72,7 @@ nav {
   backdrop-filter: blur(10px);
   flex: 1;
   overflow-y: auto;
+  min-height: 300px;
 }
 
 ul {
@@ -74,6 +84,7 @@ ul {
   padding: 8px;
   cursor: pointer;
   border-radius: 10px;
+  user-select: none;
 }
 
 #projectsList li.active {
@@ -92,6 +103,9 @@ select {
   border: none;
   margin-bottom: 10px;
   font-size: 14px;
+  background: #2e2e2e;
+  color: #fff;
+  box-sizing: border-box;
 }
 
 .list {
@@ -121,10 +135,98 @@ select {
   color: white;
   cursor: pointer;
   margin-right: 10px;
+  font-size: 13px;
 }
 
 .list-item label {
   display: flex;
   align-items: center;
   gap: 10px;
+  user-select: none;
+}
+
+/* مودال */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 30, 30, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: rgba(40, 40, 40, 0.95);
+  padding: 25px 30px;
+  border-radius: 15px;
+  max-width: 400px;
+  width: 90%;
+  color: #fff;
+  position: relative;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 15px;
+  background: #2e2e2e;
+  color: #fff;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.modal-content textarea {
+  min-height: 80px;
+}
+
+.modal-content button.save-btn {
+  background: #1db954;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  width: 100%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: 15px;
+}
+
+.modal-content button.save-btn:hover {
+  background: #17a84b;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  color: #fff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+.modal-close-btn:hover {
+  color: #1db954;
 }
