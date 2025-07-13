@@ -1,64 +1,70 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>مدير المشاريع المتكامل</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>إدارة المشاريع - المدير المتكامل</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-container">
-    <nav class="sidebar">
-      <h2>📋 المدير</h2>
-      <ul class="nav-list">
-        <li><button id="tabProjects" class="tab-btn active">المشاريع</button></li>
-        <li><button id="tabClients" class="tab-btn">العملاء</button></li>
-        <li><button id="tabEmployees" class="tab-btn">الموظفين</button></li>
-        <li><button id="tabBudget" class="tab-btn">الميزانية والحسابات</button></li>
-      </ul>
-    </nav>
-    <main class="content-area">
-      <section id="projectsTab" class="tab-content active">
-        <header><h1>المشاريع</h1><button id="btnAddProject" class="liquid-glass-btn">إنشاء مشروع</button></header>
-        <ul id="projectsList" class="list"></ul>
+<div class="app-container">
+  <aside class="sidebar">
+    <h2>مدير المشاريع</h2>
+    <button id="btnNewProject" class="btn primary">إضافة مشروع جديد</button>
+    <input type="search" id="searchInput" placeholder="ابحث عن مشروع..." />
+    <ul id="projectsList" class="list"></ul>
+  </aside>
+  <main class="main-content">
+    <div id="projectDetails" class="hidden">
+      <header>
+        <h1 id="projName"></h1>
+        <button id="btnCloseProject" class="btn secondary">× إغلاق المشروع</button>
+      </header>
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="overview">الملخص</button>
+        <button class="tab-btn" data-tab="tasks">المهام</button>
+        <button class="tab-btn" data-tab="team">الأعضاء</button>
+        <button class="tab-btn" data-tab="reports">التقارير</button>
+      </nav>
+      <section id="overview" class="tab-content active">
+        <h2>ملخص المشروع</h2>
+        <p id="projDesc"></p>
+        <p>تاريخ البداية: <span id="projStart"></span></p>
+        <p>تاريخ النهاية المتوقع: <span id="projEnd"></span></p>
+        <p>حالة المشروع: <span id="projStatus"></span></p>
+        <p>نسبة الإنجاز: <span id="projProgress"></span>%</p>
       </section>
-      <section id="clientsTab" class="tab-content">
-        <header><h1>العملاء</h1><button id="btnAddClient" class="liquid-glass-btn">إضافة عميل</button></header>
-        <ul id="clientsList" class="list"></ul>
+      <section id="tasks" class="tab-content">
+        <h2>المهام</h2>
+        <button id="btnAddTask" class="btn primary">إضافة مهمة جديدة</button>
+        <ul id="tasksList" class="list"></ul>
       </section>
-      <section id="employeesTab" class="tab-content">
-        <header><h1>الموظفين</h1><button id="btnAddEmployee" class="liquid-glass-btn">إضافة موظف</button></header>
-        <ul id="employeesList" class="list"></ul>
+      <section id="team" class="tab-content">
+        <h2>الأعضاء</h2>
+        <button id="btnAddMember" class="btn primary">إضافة عضو</button>
+        <ul id="teamList" class="list"></ul>
       </section>
-      <section id="budgetTab" class="tab-content">
-        <header>
-          <h1>الميزانية والحسابات</h1>
-          <button id="btnAddBudget" class="liquid-glass-btn">تعيين ميزانية</button>
-          <button id="btnAddAccount" class="liquid-glass-btn">إضافة حركة مالية</button>
-        </header>
-        <div id="budgetSummary" class="budget-summary"></div>
-        <ul id="accountsList" class="list"></ul>
+      <section id="reports" class="tab-content">
+        <h2>تقارير المشروع</h2>
+        <div id="reportsContent">لا توجد تقارير حالياً.</div>
       </section>
     </main>
-  </div>
+</div>
 
-  <div id="modalOverlay" class="modal-overlay hidden">
-    <div class="modal">
-      <h2 id="modalTitle"></h2>
-      <form id="modalForm"></form>
-      <div class="modal-buttons">
-        <button id="modalCancel" class="liquid‑glass‑btn">إلغاء</button>
-        <button id="modalSubmit" class="liquid‑glass‑btn">حفظ</button>
-      </div>
+<!-- نموذج إضافة / تعديل مشروع -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle"></h2>
+    <form id="modalForm">
+      <!-- الحقول ستتم إضافتها ديناميكياً -->
+    </form>
+    <div class="modal-buttons">
+      <button id="modalCancel" class="btn secondary">إلغاء</button>
+      <button id="modalSubmit" class="btn primary">حفظ</button>
     </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
+<script src="app.js"></script>
 </body>
 </html>
