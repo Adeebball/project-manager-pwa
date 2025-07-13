@@ -1,14 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+
 * {
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  color: white;
-  margin: 0;
-  padding: 0;
 }
 
 body {
-  background: linear-gradient(135deg, #1e1e1e 0%, #121212 100%);
+  margin: 0;
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(135deg, #1e1e1e, #121212);
+  color: white;
+  direction: rtl;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -18,44 +19,42 @@ body {
 
 #app {
   display: flex;
-  width: 90vw;
+  width: 95vw;
   max-width: 1200px;
   height: 90vh;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
+  background: rgba(255 255 255 / 0.05);
   border-radius: 15px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   overflow: hidden;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
 }
 
 aside {
-  width: 300px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 320px;
+  background: rgba(255 255 255 / 0.1);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  border-right: 1.5px solid rgba(255 255 255 / 0.15);
 }
 
 aside h2 {
+  margin: 0 0 10px 0;
   font-weight: 700;
-  font-size: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 10px;
-  margin-bottom: 15px;
+  font-size: 1.8rem;
+  text-align: center;
+  user-select: none;
 }
 
 #projectSearch {
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
   border: none;
-  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 15px;
+  background: rgba(255 255 255 / 0.1);
   color: white;
   font-size: 1rem;
-}
-
-#projectSearch::placeholder {
-  color: rgba(255, 255, 255, 0.6);
 }
 
 #projectsList {
@@ -64,194 +63,166 @@ aside h2 {
   margin: 0;
   flex-grow: 1;
   overflow-y: auto;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
 }
 
 #projectsList li {
   padding: 12px 15px;
+  margin-bottom: 8px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background-color 0.3s ease;
+  border-radius: 12px;
+  transition: background 0.25s ease;
+  user-select: none;
 }
 
-#projectsList li:hover,
-#projectsList li.active {
-  background: rgba(255, 255, 255, 0.15);
+#projectsList li.active,
+#projectsList li:hover {
+  background: rgba(255 255 255 / 0.2);
 }
 
 .btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
-  color: white;
-  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
+  border: none;
+  outline: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px 18px;
+  border-radius: 12px;
+  transition: background 0.3s ease, color 0.3s ease;
+  user-select: none;
 }
 
-.btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.glass-btn {
+  background: rgba(255 255 255 / 0.15);
+  color: white;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(255 255 255 / 0.15);
+}
+
+.glass-btn:hover {
+  background: rgba(255 255 255 / 0.3);
+  color: #000;
 }
 
 main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.07);
   padding: 20px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 nav {
   display: flex;
-  gap: 10px;
+  justify-content: flex-start;
   margin-bottom: 15px;
+  gap: 15px;
+  user-select: none;
 }
 
 .tab {
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
+  background: rgba(255 255 255 / 0.15);
   color: white;
+  padding: 10px 25px;
+  border-radius: 12px;
+  border: none;
   font-weight: 600;
-  padding: 10px 20px;
   cursor: pointer;
-  transition: border-color 0.3s ease;
-  font-size: 1rem;
+  transition: background 0.25s ease;
 }
 
 .tab.active {
-  border-color: #0af;
-  color: #0af;
+  background: rgba(255 255 255 / 0.5);
+  color: black;
+  font-weight: 700;
+}
+
+.tab:hover:not(.active) {
+  background: rgba(255 255 255 / 0.3);
 }
 
 .tab-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(255 255 255 / 0.1);
+  border-radius: 15px;
   padding: 20px;
-  display: none;
+  flex-grow: 1;
+  color: white;
+  overflow-y: auto;
+  box-shadow: 0 0 30px rgba(255 255 255 / 0.15);
+  user-select: text;
 }
 
-.tab-content.show {
-  display: block;
-}
-
-.tab-content h3 {
+h3 {
   margin-top: 0;
   margin-bottom: 15px;
 }
 
 ul {
+  list-style-type: none;
   padding: 0;
-  list-style: none;
+  margin: 0;
 }
 
 ul li {
-  margin-bottom: 10px;
-}
-
-button {
-  margin-left: 5px;
-}
-
-/* مودال */
-#modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-#modalOverlay.hidden {
-  display: none;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255 255 255 / 0.15);
+  user-select: none;
 }
 
 .modal {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(16px);
-  padding: 25px;
-  border-radius: 15px;
-  width: 400px;
-  max-width: 90vw;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255 255 255 / 0.15);
+  padding: 25px 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 50px rgba(255 255 255 / 0.25);
+  max-width: 400px;
+  width: 90%;
+  z-index: 1001;
   color: white;
-  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  user-select: none;
 }
 
-.modal h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-weight: 700;
+.hidden {
+  display: none;
 }
 
-.modal form label {
+#modalForm label {
   display: block;
+  margin-top: 12px;
   margin-bottom: 5px;
   font-weight: 600;
+  user-select: none;
 }
 
-.modal form input,
-.modal form select {
+#modalForm input,
+#modalForm select {
   width: 100%;
-  padding: 8px 10px;
-  margin-bottom: 15px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255 255 255 / 0.2);
   color: white;
   font-size: 1rem;
+  user-select: text;
 }
 
 .cancel-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  margin-top: 10px;
+  margin-top: 15px;
+  background: #b33030 !important;
+  color: white !important;
   width: 100%;
 }
 
-.cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* تأثير زجاجي للأزرار والبطاقات */
-
-.glass-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 25px;
+#currencySelect {
+  border-radius: 12px;
+  border: none;
+  padding: 6px 10px;
+  background: rgba(255 255 255 / 0.2);
   color: white;
   font-weight: 600;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-  box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.glass-btn:hover,
-.glass-btn:focus {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  outline: none;
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  font-size: 1rem;
+  user-select: text;
 }
